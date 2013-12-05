@@ -1,11 +1,11 @@
 #!/bin/env python
 
-import HWWAnalysis.Misc.ROOTAndUtils as utils
+# Local imports
+import utils
 from painter import Canvas,Pad,Legend,Latex
+
 import ROOT
 import array
-
-
 
 
 class H1RatioPlotter(object):
@@ -194,6 +194,10 @@ class H1RatioPlotter(object):
         self._legend = None
         self._stack  = None
         self._dstack = None
+
+
+    def __del__(self):
+        if self._canvas: del self._canvas
 
     # ---
     def __getattr__(self,name):
@@ -487,7 +491,7 @@ if __name__ == '__main__':
 
     c = ROOT.TCanvas('xx','xx')
 
-    diff = H1DiffPlotter()
+    diff = H1RatioPlotter()
     diff.set(h2,h1)
 
     diff._ltitle = "la rava"

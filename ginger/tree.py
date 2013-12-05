@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
+# Local imports
+import utils
+import odict
 
 import ctypes
 import os.path
-import HWWAnalysis.Misc.ROOTAndUtils as utils
-import HWWAnalysis.Misc.odict as odict
 import logging
 import math
 import uuid

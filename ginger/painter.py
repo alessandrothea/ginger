@@ -272,6 +272,8 @@ class Pad(object):
         #print '->>> Y',style['titlefamily'],style['titlesize'],style['titleoffset']
 
         setter.apply(yax,**style)
+
+        self.Modified()
         self._log.debug('tick yaxis: %s =>  %s',self._yaxis['ticklength'])
 
 
@@ -421,7 +423,6 @@ class Canvas(object):
         w,h = self._computesize() #new
 
         fw,fh = float(w),float(h)
-#         c = ROOT.TCanvas(name,title, w+4, h+28)
         c = _makecanvas(name,title,w,h)
         c.Draw()
 
@@ -467,11 +468,13 @@ class Canvas(object):
 #                 print pname,x0/fw,(h-y0)/fh,x1/fw,(h-y1)/fh, k
             tpad = ROOT.TPad(pname,pname,x0/fw,(h-y1)/fh,x1/fw,(h-y0)/fh)#, k)
             tpad.Draw()
+            ROOT.SetOwnership(tpad,False)
             pad._obj = tpad
             pad._applypadstyle()
             k += 1
 
 
+        ROOT.SetOwnership(c,False)
         self._obj = c
         return c
 

@@ -1,4 +1,4 @@
-import HWWAnalysis.Misc.odict as odict
+import odict
 from .tree import TreeWorker, ChainWorker, TreeView, ChainView, Sample
 from .base import Labelled
 import os.path

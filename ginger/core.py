@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 import ROOT
-import HWWAnalysis.Misc.odict as odict
+from . import odict
 import math
 import copy
 
