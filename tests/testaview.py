@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 def run( path, globals=None, locals=None ):
     import os

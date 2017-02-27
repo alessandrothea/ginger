@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 
 from ginger.tree import TreeWorker,TreeView
 from ginger.analysis import CutFlow,TreeAnalyser

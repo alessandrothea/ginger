@@ -1,5 +1,3 @@
-#!/bin/env python
-
 # Local imports
 import utils
 from painter import Canvas,Pad,Legend,Latex

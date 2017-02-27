@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 
 from HiggsAnalysis.CombinedLimit.DatacardParser import *
 from HiggsAnalysis.CombinedLimit.ShapeTools import *

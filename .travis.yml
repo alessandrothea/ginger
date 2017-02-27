@@ -30,5 +30,17 @@ install:
   - export CONDA_ENV_PATH=$HOME/miniconda/envs/testenv
   - source activate testenv
 
-script: bash test.sh
+script: 
+  - source env.sh
+  - python tests/testaview.py
+  - python tests/testchain.py
+  - python tests/testcombined.py
+  - python tests/testcoroner.py
+  - python tests/testdesigner.py
+  - python tests/testgrove.py
+  - python tests/testodict.py
+  - python tests/testplot.py
+  - python tests/testrp.py
+  - python tests/testtuck.py
+
 cache: apt

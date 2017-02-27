@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 
 from ginger.painter import Pad,Canvas,Legend
 import sys

@@ -1,5 +1,3 @@
-#!/bin/env python
-
 # TAxis mistery quantities
 
 # labeloffset: TAxis wants it in units of the pad height(width) for the x(y) axis. The value in pixel must be divided by height-top-bottom (width-left-right)
