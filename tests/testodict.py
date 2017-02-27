@@ -4,9 +4,6 @@ from collections import OrderedDict
 from ginger.analysis import Cut
 
 
-
-
-
 #______________________________________________________________________________
 class CutFlow(OrderedDict):
 

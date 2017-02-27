@@ -3,14 +3,12 @@
 from ginger.tree import TreeWorker,TreeView
 from ginger.analysis import CutFlow,TreeAnalyser
 
-import HWWAnalysis.Misc.odict as odict
+import collections
 import hwwsamples2g
 import uuid
 import logging
 import itertools
 import pdb
-
-
 
 
 
@@ -69,8 +67,8 @@ def test():
 
 
 #     print misteries
-#     print odict.OrderedDict([ (n,m.yields()) for n,m in misteries.iteritems() ])
-#     xyz =  odict.OrderedDict([ (n,m.plot('ziogano%i' % i,'mll')) for i,(n,m) in enumerate(misteries.iteritems()) ])
+#     print collections.OrderedDict([ (n,m.yields()) for n,m in misteries.iteritems() ])
+#     xyz =  collections.OrderedDict([ (n,m.plot('ziogano%i' % i,'mll')) for i,(n,m) in enumerate(misteries.iteritems()) ])
 #     for w in xyz.itervalues(): w.Print()
 
     print 'nosel:',w.GetEntries()
@@ -105,7 +103,7 @@ def test():
             views[n] = m
 
 
-    misteries = odict.OrderedDict()
+    misteries = collections.OrderedDict()
     grow(flow,misteries)
 
     for n,m in misteries.iteritems():

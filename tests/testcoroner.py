@@ -3,7 +3,7 @@
 import ROOT
 import sys
 from ginger.painter import Pad,Canvas,Legend,Latex
-from HWWAnalysis.Misc.ROOTAndUtils import TH1AddDirSentry
+from ginger.utils import TH1AddDirSentry
 import numpy
 import array
 
