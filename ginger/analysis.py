@@ -1,6 +1,6 @@
-import odict
 from .tree import TreeWorker, ChainWorker, TreeView, ChainView, Sample
 from .base import Labelled
+from collections import OrderedDict
 import os.path
 import ROOT
 import logging
@@ -53,11 +53,11 @@ class Latino:
 
 
 #______________________________________________________________________________
-class CutFlow(odict.OrderedDict):
+class CutFlow(OrderedDict):
 
     #---
-    def __init__(self, init_val=(), strict=False):
-        odict.OrderedDict.__init__(self,(), strict)
+    def __init__(self, init_val=()):
+        super(CutFlow, self).__init__()
         self._import(init_val)
 
     #---
@@ -70,7 +70,7 @@ class CutFlow(odict.OrderedDict):
                     self[item] = item
                 else:
                     raise ValueError('CutFlow: list entry not supported: '+item.__class__.__name__)
-        elif isinstance(l,odict.OrderedDict):
+        elif isinstance(l,OrderedDict):
             for key,val in l.iteritems():
                 self[key] = val
         elif isinstance(l,tuple):
@@ -88,7 +88,7 @@ class CutFlow(odict.OrderedDict):
 
         val.name = key
 
-        odict.OrderedDict.__setitem__(self,key,val)
+        OrderedDict.__setitem__(self,key,val)
 
     #---
     def __getitem__(self, key):
@@ -107,10 +107,10 @@ class CutFlow(odict.OrderedDict):
             istart = self.index(key.start) if key.start else None
             istop  = self.index(key.stop ) if key.stop  else None
             istep  = key.step if key.step else None
-            item = odict.OrderedDict.__getitem__(self,slice(istart,istop,istep))
+            item = OrderedDict.__getitem__(self,slice(istart,istop,istep))
         else:
-            item = odict.OrderedDict.__getitem__(self,key)
-        if isinstance(item, odict.OrderedDict):
+            item = OrderedDict.__getitem__(self,key)
+        if isinstance(item, OrderedDict):
             return CutFlow(item)
         else:
             return item
@@ -144,12 +144,12 @@ class CutFlow(odict.OrderedDict):
         if isinstance(value,str):
             value = Cut(value)
 
-        odict.OrderedDict.insert(self, index, key, value)
+        OrderedDict.insert(self, index, key, value)
 
     #---
     def rename(self, old_key, new_key):
 
-        odict.OrderedDict.rename(self,old_key,new_key)
+        OrderedDict.rename(self,old_key,new_key)
 
         self.__getitem__(new_key).name = new_key
 
@@ -361,7 +361,7 @@ class TreeAnalyser(object):
         if force: self._deleteentries()
 
         if not self._views:
-            self._views = odict.OrderedDict()
+            self._views = OrderedDict()
             self._modified = True
 
         if self._modified:
@@ -449,7 +449,7 @@ class TreeAnalyser(object):
 
     #---
     def extend(self,cuts):
-        if isinstance(cuts, odict.OrderedDict):
+        if isinstance(cuts, OrderedDict):
             citer = cuts.iteritems()
         elif isinstance(cuts,list) and all(isinstance(o,tuple) for o in cuts):
             citer = iter(cuts)
@@ -486,7 +486,7 @@ class TreeAnalyser(object):
         '''TODO: use the entrylist'''
 
         self._ensureviews()
-        return odict.OrderedDict([ (n, v.entries(cut)) for n,v in self._views.iteritems()])
+        return OrderedDict([ (n, v.entries(cut)) for n,v in self._views.iteritems()])
 
     #---
     def yields(self, extra=None):
@@ -504,9 +504,9 @@ class TreeAnalyser(object):
         # make the entries
         views = self._ensureviews()
 
-        if not views: return odict.OrderedDict()
+        if not views: return OrderedDict()
 
-        return odict.OrderedDict([( n,v.yields(extra) ) for n,v in views.iteritems()])
+        return OrderedDict([( n,v.yields(extra) ) for n,v in views.iteritems()])
 
     #---
     def plot(self, name, varexp, options='', bins=None, extra=None, postprocess=None):
@@ -540,9 +540,9 @@ class TreeAnalyser(object):
         views = self._ensureviews()
 
         # add the weight and get the yields
-        if not views: return odict.OrderedDict()
+        if not views: return OrderedDict()
 
-        plots =  odict.OrderedDict([( n,v.plot('%s_%s' % (name,n),varexp,extra,options,bins) ) for n,v in views.iteritems()])
+        plots =  OrderedDict([( n,v.plot('%s_%s' % (name,n),varexp,extra,options,bins) ) for n,v in views.iteritems()])
 
         # make a list with all processors
         procs = self._filters if not postprocess else (self._filters+[postprocess])
@@ -556,7 +556,7 @@ class TreeAnalyser(object):
     # ---
     def splityields(self, regions, extra=None):
 
-        plots  = odict.OrderedDict()
+        plots  = OrderedDict()
         for rname,rcut in regions.iteritems():
             cut = rcut if not extra else '(%s) && (%s)' % (rname,extra)
             plots[rname] = self.yields(cut)
@@ -566,7 +566,7 @@ class TreeAnalyser(object):
     # ---
     def splitplot(self, name, varexp, regions, options='',bins=None, extra=None, postprocess=None):
 
-        plots  = odict.OrderedDict()
+        plots  = OrderedDict()
         for rname,rcut in regions.iteritems():
             cut = rcut if not extra else '(%s) && (%s)' % (rname,extra)
             plots[rname] = self.plot(name,varexp,options,bins,cut,postprocess)
@@ -609,8 +609,3 @@ if __name__ == '__main__':
     print a._worker._friends
 
     del a
-
-
-
-
-
