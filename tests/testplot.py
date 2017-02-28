@@ -2,7 +2,7 @@
 
 import ROOT
 import os
-import ginger.odict
+import collections
 
 import hwwplot
 shape_path = os.path.join(os.getenv('CMSSW_BASE'),'src/HWWAnalysis/ShapeAnalysis/')
@@ -10,7 +10,7 @@ print 'Shape directory is',shape_path
 ROOT.gInterpreter.ExecuteMacro(shape_path+'macros/LatinoStyle2.C');
 
 
-defaults  = odict.OrderedDict([
+defaults  = collections.OrderedDict([
     ('ggH',  { 'color':ROOT.kRed+1, 'label':'ggH', }),
     ('vbfH', { 'color':ROOT.kRed+2, 'label':'qqH', }),
     ('wzttH',{ 'color':ROOT.kRed+3, 'label':'VH' , }),

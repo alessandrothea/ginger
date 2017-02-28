@@ -5,15 +5,15 @@ except ImportError:
 
 config = {
     'description': 'My Project',
-    'author': 'My Name',
+    'author': 'Alessandro Thea',
     'url': 'URL to get it at.',
     'download_url': 'Where to download it.',
-    'author_email': 'My email.',
+    'author_email': 'timelike@gmail.com.',
     'version': '0.1',
     'install_requires': ['nose'],
     'packages': ['ginger'],
     'scripts': [],
-    'name': 'projectname'
+    'name': 'ginger'
 }
 
 setup(**config)
