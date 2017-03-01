@@ -20,15 +20,3 @@ python -c "import sys; sys.argv.append('-b'); import ROOT; ROOT.TBrowser()"
 
 # Check that rootpy can be imported
 time python -c 'import ginger'
-
-
-# - python ${HERE}/testaview.py
-# - python ${HERE}/testchain.py
-# - python ${HERE}/testcombined.py
-python ${HERE}/testcoroner.py
-python ${HERE}/testdesigner.py
-# - python ${HERE}/testgrove.py
-python ${HERE}/testodict.py
-# - python ${HERE}/testplot.py
-python ${HERE}/testrp.py
-python ${HERE}/testtuck.py
