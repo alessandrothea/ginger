@@ -33,15 +33,15 @@ install:
 script:
   - source env.sh
   - bash tests/test.sh
-  # - python ${HERE}/testaview.py
-  # - python ${HERE}/testchain.py
-  # - python ${HERE}/testcombined.py
-  - python ${HERE}/testcoroner.py
-  - python ${HERE}/testdesigner.py
-  # - python ${HERE}/testgrove.py
-  - python ${HERE}/testodict.py
-  # - python ${HERE}/testplot.py
-  - python ${HERE}/testrp.py
-  - python ${HERE}/testtuck.py
+  # - python tests/testaview.py
+  # - python tests/testchain.py
+  # - python tests/testcombined.py
+  - python tests/testcoroner.py
+  - python tests/testdesigner.py
+  # - python tests/testgrove.py
+  - python tests/testodict.py
+  # - python tests/testplot.py
+  - python tests/testrp.py
+  - python tests/testtuck.py
 
 cache: apt
