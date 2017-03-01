@@ -16,7 +16,7 @@ python -c "import numpy; print('numpy %s' % numpy.__version__)"
 
 # Check if ROOT and PyROOT work
 root -b -l -q
-python -c "sys.argv.append('-b'); import ROOT; ROOT.TBrowser()"
+python -c "import sys; sys.argv.append('-b'); import ROOT; ROOT.TBrowser()"
 
 # Check that rootpy can be imported
 time python -c 'import ginger'
