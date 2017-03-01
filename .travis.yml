@@ -36,7 +36,7 @@ script:
   # - python tests/testaview.py
   # - python tests/testchain.py
   # - python tests/testcombined.py
-  - python tests/testcoroner.py
+  # - python tests/testcoroner.py
   - python tests/testdesigner.py
   # - python tests/testgrove.py
   - python tests/testodict.py
