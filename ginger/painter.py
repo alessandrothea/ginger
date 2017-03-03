@@ -33,15 +33,16 @@
 import ROOT
 import uuid
 import sys
-import copy
 import logging
 
-_tcanvas_winframe_width  = 4
+_tcanvas_winframe_width = 4
 _tcanvas_winframe_height = 28
 
-def _makecanvas(name,title,w,h):
+
+# ______________________________________________________________________________
+def _makecanvas(name, title, w, h):
     '''What about usign TCanvas.SetCanvasSize to ensure the correct geometry?'''
-    return ROOT.TCanvas(name,title, w+_tcanvas_winframe_width, h+_tcanvas_winframe_height)
+    return ROOT.TCanvas(name, title, w+_tcanvas_winframe_width, h+_tcanvas_winframe_height)
 
 
 class StyleSetter(object):
@@ -51,58 +52,62 @@ class StyleSetter(object):
     def _initsetters():
         '''_setters is initialized here rather than in the class definition to
         avoid ROOT to be fully loaded when importing this module'''
-        if hasattr(StyleSetter,'_setters'): return
+        if hasattr(StyleSetter, '_setters'):
+            return
         StyleSetter._setters = {
-            ROOT.TAttAxis:[
-                ('labelfamily' , ROOT.TAxis.SetLabelFont),
-                ('labelsize'   , ROOT.TAxis.SetLabelSize),
-                ('labeloffset' , ROOT.TAxis.SetLabelOffset),
-                ('titlefamily' , ROOT.TAxis.SetTitleFont),
-                ('titlesize'   , ROOT.TAxis.SetTitleSize),
-                ('titleoffset' , ROOT.TAxis.SetTitleOffset),
-                ('ticklength'  , ROOT.TAxis.SetTickLength),
-                ('ndivisions'  , ROOT.TAxis.SetNdivisions),
+            ROOT.TAttAxis: [
+                ('labelfamily', ROOT.TAxis.SetLabelFont),
+                ('labelsize',   ROOT.TAxis.SetLabelSize),
+                ('labeloffset', ROOT.TAxis.SetLabelOffset),
+                ('titlefamily', ROOT.TAxis.SetTitleFont),
+                ('titlesize',   ROOT.TAxis.SetTitleSize),
+                ('titleoffset', ROOT.TAxis.SetTitleOffset),
+                ('ticklength',  ROOT.TAxis.SetTickLength),
+                ('ndivisions',  ROOT.TAxis.SetNdivisions),
             ],
 
-            ROOT.TAttText:[
-                ('textfamily',ROOT.TAttText.SetTextFont),
-                ('textsize'  ,ROOT.TAttText.SetTextSize),
-                ('textcolor' ,ROOT.TAttText.SetTextColor),
-                ('textangle' ,ROOT.TAttText.SetTextAngle),
-                ('textalign' ,ROOT.TAttText.SetTextAlign),
+            ROOT.TAttText: [
+                ('textfamily', ROOT.TAttText.SetTextFont),
+                ('textsize',   ROOT.TAttText.SetTextSize),
+                ('textcolor',  ROOT.TAttText.SetTextColor),
+                ('textangle',  ROOT.TAttText.SetTextAngle),
+                ('textalign',  ROOT.TAttText.SetTextAlign),
             ],
 
-            ROOT.TAttLine:[
-                ('linecolor' ,ROOT.TAttLine.SetLineColor),
-                ('linestyle' ,ROOT.TAttLine.SetLineStyle),
-                ('linewidth' ,ROOT.TAttLine.SetLineWidth),
+            ROOT.TAttLine: [
+                ('linecolor', ROOT.TAttLine.SetLineColor),
+                ('linestyle', ROOT.TAttLine.SetLineStyle),
+                ('linewidth', ROOT.TAttLine.SetLineWidth),
             ],
 
-            ROOT.TAttFill:[
-                ('fillcolor' ,ROOT.TAttFill.SetFillColor),
-                ('fillstyle' ,ROOT.TAttFill.SetFillStyle),
-                ('fillstyle' ,ROOT.TAttFill.SetFillStyle),
+            ROOT.TAttFill: [
+                ('fillcolor', ROOT.TAttFill.SetFillColor),
+                ('fillstyle', ROOT.TAttFill.SetFillStyle),
+                ('fillstyle', ROOT.TAttFill.SetFillStyle),
             ],
         }
 
-    def __init__(self, **opts ):
+    def __init__(self, **opts):
         self._initsetters()
         self._opts = opts
 
     def apply(self, tobj, **opts):
 
         myopts = self._opts.copy()
-        myopts.update( opts )
+        myopts.update(opts)
 
-        for cls,methods in self._setters.iteritems():
-            if not isinstance(tobj,cls): continue
+        for cls, methods in self._setters.iteritems():
+            if not isinstance(tobj, cls):
+                continue
 
-            for l,m in methods:
-                x = myopts.get(l,None)
-                if not x is None:
-                    m(tobj,x)
+            for l, m in methods:
+                x = myopts.get(l, None)
+                if x is not None:
+                    m(tobj, x)
+# ______________________________________________________________________________
 
-#_______________________________________________________________________________
+
+# ______________________________________________________________________________
 #     ____            __
 #    / __ \____ _____/ /
 #   / /_/ / __ `/ __  /
@@ -113,137 +118,160 @@ class Pad(object):
     _log = logging.getLogger('Pad')
 
     _axisstyle = {
-        'labelfamily' : 4,
-        'labelsize'   : 20,
-        'labeloffset' : 2,
-        'titlefamily' : 4,
-        'titlesize'   : 25,
-        'titleoffset' : 30.,
-        'ticklength'  : 10,
-        'ndivisions'  : 505,
+        'labelfamily': 4,
+        'labelsize':   20,
+        'labeloffset': 2,
+        'titlefamily': 4,
+        'titlesize':   25,
+        'titleoffset': 30.,
+        'ticklength':  10,
+        'ndivisions':  505,
     }
 
-    #---
-    def __init__(self, name, width=500, height=500, **opts ):
+    # __________________________________________________________________________
+    def __init__(self, name, width=500, height=500, **opts):
         self._name = name
         self._w = width
         self._h = height
-        self._align = ('c','m') # lcr
+        self._align = ('c', 'm')  # lcr
         self._showtitle = False
         self._showstats = False
         self._obj = None
 
-        self._margins = (60,60,60,60)
+        self._margins = (60, 60, 60, 60)
         self._xaxis = self._axisstyle.copy()
         self._yaxis = self._axisstyle.copy()
 
         # temp solution
 
-        for n,o in opts.iteritems():
+        for n, o in opts.iteritems():
             attr = '_'+n
-            if not hasattr(self,attr): continue
+            if not hasattr(self, attr):
+                continue
             if n == 'xaxis' or n == 'yaxis':
-                getattr(self,attr).update(o)
+                getattr(self, attr).update(o)
             else:
-                setattr(self,attr,o)
+                setattr(self, attr, o)
         self._build()
+    # __________________________________________________________________________
 
-    #---
+    # __________________________________________________________________________
     def _build(self):
         m = self._margins
-        if isinstance(m,tuple):
+        if isinstance(m, tuple):
             if len(m) == 1:
-                m = (m[0],m[0],m[0],m[0])
+                m = (m[0], m[0], m[0], m[0])
             elif len(m) == 2:
-                m = (m[0],m[0],m[1],m[1])
+                m = (m[0], m[0], m[1], m[1])
             elif len(m) == 4:
                 pass
             else:
                 raise ValueError('margins must be a 1,2,4 length tuple')
         self._margins = m
+    # __________________________________________________________________________
 
+    # __________________________________________________________________________
     @property
-    def xaxis(self): return xaxis
+    def xaxis(self): return self._xaxis
+    # __________________________________________________________________________
 
+    # __________________________________________________________________________
     @property
-    def yaxis(self): return yaxis
+    def yaxis(self): return self._yaxis
+    # __________________________________________________________________________
 
+    # __________________________________________________________________________
     @property
     def w(self): return self._w
+    # __________________________________________________________________________
+
+    # __________________________________________________________________________
     @property
-    def h(self): return self._h
+    def h(self):
+        return self._h
+    # __________________________________________________________________________
 
+    # __________________________________________________________________________
     def __str__(self):
-        return '%s(\'%s\',w=%d,h=%d,obj=%s)' % (self.__class__.__name__,self._name,self._w,self._h,self._obj)
+        return '%s(\'%s\',w=%d,h=%d,obj=%s)' % (
+            self.__class__.__name__, self._name, self._w, self._h, self._obj
+        )
+    # __________________________________________________________________________
 
-    #---
-    def __getattr__(self,name):
+    # __________________________________________________________________________
+    def __getattr__(self, name):
         if not self._obj:
             raise AttributeError('%s not found' % name)
-        return getattr(self._obj,name)
+        return getattr(self._obj, name)
+    # __________________________________________________________________________
 
-
-    #---
+    # __________________________________________________________________________
     def _applypadstyle(self):
 
-        left,right,top,bottom = self._margins
-        fh,fw = float(self._h),float(self._w)
+        left, right, top, bottom = self._margins
+        fh, fw = float(self._h), float(self._w)
 
-        if not top    is None : self._obj.SetTopMargin    ( top/fh )
-        if not bottom is None : self._obj.SetBottomMargin ( bottom/fh )
-        if not left   is None : self._obj.SetLeftMargin   ( left/fw )
-        if not right  is None : self._obj.SetRightMargin  ( right/fw )
+        if top    is not None: self._obj.SetTopMargin    ( top / fh )
+        if bottom is not None: self._obj.SetBottomMargin ( bottom / fh )
+        if left   is not None: self._obj.SetLeftMargin   ( left / fw )
+        if right  is not None: self._obj.SetRightMargin  ( right / fw )
+    # _________________________________________________________________________
 
-    #---
+    # __________________________________________________________________________
     def _applyframestyle(self):
 
         h = None
         for o in self._obj.GetListOfPrimitives():
-            if not (isinstance(o,ROOT.TH1) or isinstance(o,ROOT.THStack) or isinstance(o,ROOT.TMultiGraph)): continue
+            if not (
+                isinstance(o, ROOT.TH1) or
+                isinstance(o, ROOT.THStack) or
+                isinstance(o, ROOT.TMultiGraph)
+            ):
+                continue
             h = o
             break
 
-        #TODO fix the frame line width
-        #for o in self._obj.GetListOfPrimitives():
-            #if isinstance(o,ROOT.TFrame):
-                #print 'TFrame linewidth', o.GetLineWidth()
-                #o.SetLineWidth(1)
-                #print 'TFrame linewidth', o.GetLineWidth()
+        # TODO fix the frame line width
+        # for o in self._obj.GetListOfPrimitives():
+        #     if isinstance(o,ROOT.TFrame):
+        #         print 'TFrame linewidth', o.GetLineWidth()
+        #         o.SetLineWidth(1)
+        #         print 'TFrame linewidth', o.GetLineWidth()
 
         if not h: return
 
         if not self._showtitle:
-            frame = h.GetHistogram() if isinstance(h, ROOT.THStack) or isinstance(h,ROOT.TMultiGraph) else h
+            frame = h.GetHistogram() if isinstance(h, ROOT.THStack) or isinstance(h, ROOT.TMultiGraph) else h
             frame.SetBit(ROOT.TH1.kNoTitle)
 
             for o in self._obj.GetListOfPrimitives():
-                if isinstance(o,ROOT.TPaveText) and o.GetName()=='title':
-                    ROOT.SetOwnership(o,True)
+                if isinstance(o, ROOT.TPaveText) and o.GetName() == 'title':
+                    ROOT.SetOwnership(o, True)
                     del o
 
         if not self._showstats:
             frame.SetBit(ROOT.TH1.kNoStats)
             o = h.FindObject('stats')
             if o.__nonzero__():
-                ROOT.SetOwnership(o,True)
+                ROOT.SetOwnership(o, True)
                 del o
 
-        left,right,top,bottom = self._margins
-        lax = self._w-left-right
-        lay = self._h-top-bottom
+        left, right, top, bottom = self._margins
+        lax = self._w - left - right
+        lay = self._h - top - bottom
 
         setter = StyleSetter()
 
         # TODO massive cleanup needed
         xax = h.GetXaxis()
         style = self._xaxis.copy()
-        style['ticklength']  *= self._w/float(lax*self._h)
-        style['labeloffset'] /= float(self._h-top-bottom)
+        style['ticklength'] *= self._w / float(lax * self._h)
+        style['labeloffset'] /= float(self._h - top - bottom)
 
         # alwyas variable size fonts
         style['titlefamily']  = style['titlefamily']*10+2
-        #print 'bu',style['titleoffset'], style['titlesize']
-        #TODO careful the order here is important, as titleoffset is using titlesize in pixels
+        # print 'bu',style['titleoffset'], style['titlesize']
+        # TODO careful the order here is important, as titleoffset is using titlesize in pixels
         style['titleoffset'] *= 1./(1.6*style['titlesize']) if style['titlesize'] else 0
         style['titlesize']   /= float(self._h)
         style['labelfamily']  = style['labelfamily']*10+2
@@ -273,6 +301,7 @@ class Pad(object):
 
         self.Modified()
         self._log.debug('tick yaxis: %s =>  %s',self._yaxis['ticklength'])
+    # __________________________________________________________________________
 
 
 #_______________________________________________________________________________
@@ -321,7 +350,7 @@ class Canvas(object):
     def __init__(self, minsize=(0,0)):
         self._minsize = minsize
         self._pads = []
-        self._gridX = {} #new
+        self._grid = {} #new
         self._hrows = []
         self._wcols = []
         self._obj = None
@@ -344,7 +373,7 @@ class Canvas(object):
         #old = self._grid[i][j]
         #if not old is None: self._pads.pop(old)
 
-        self._gridX[i,j] = pad #new
+        self._grid[i,j] = pad #new
         if not pad: return
 
         self._pads.append(pad)
@@ -360,7 +389,7 @@ class Canvas(object):
 
     #---
     def get(self,i,j):
-        pad = self._gridX[i,j] if (i,j) in self._gridX else None
+        pad = self._grid[i,j] if (i,j) in self._grid else None
 
         return pad
 
@@ -375,18 +404,19 @@ class Canvas(object):
         return self.get( *key )
 
     #---
+    # __________________________________________________________________________
     def _computesize(self): # new
 
-        nx = max( i for i,j in self._gridX.iterkeys())+1
-        ny = max( j for i,j in self._gridX.iterkeys())+1
+        nx = max( i for i,j in self._grid.iterkeys())+1
+        ny = max( j for i,j in self._grid.iterkeys())+1
 
-        #print nx,ny,self._gridX.keys()
+        #print nx,ny,self._grid.keys()
 
         mw,mh = self._minsize
         hrows = [mh]*ny
         wcols = [mw]*nx
 
-        for (i,j),pad in self._gridX.iteritems():
+        for (i,j),pad in self._grid.iteritems():
             if not pad: continue
             wcols[i] = max(wcols[i],pad.w)
             hrows[j] = max(hrows[j],pad.h)
@@ -396,27 +426,33 @@ class Canvas(object):
         self._wcols = wcols
         h = sum(self._hrows)
         w = sum(self._wcols)
-        return w,h
+        return w, h
+    # __________________________________________________________________________
 
-    #---
+    # __________________________________________________________________________
     def size(self):
         return self._computesize()
+    # __________________________________________________________________________
 
-    #---
+    # __________________________________________________________________________
     def gridsize(self):
-        nx = max( i for i,j in self._gridX.iterkeys())+1
-        ny = max( j for i,j in self._gridX.iterkeys())+1
+        nx = max( i for i,j in self._grid.iterkeys())+1
+        ny = max( j for i,j in self._grid.iterkeys())+1
         return nx,ny
+    # __________________________________________________________________________
 
-    #---
+    # __________________________________________________________________________
     def _getanchors(self,i,j):
         return sum(self._wcols[0:i]),sum(self._hrows[0:j])
+    # __________________________________________________________________________
 
-    #---
+    # __________________________________________________________________________
     def makecanvas(self, name=None, title=None):
 
-        if not name : name = 'canvas_'+str(uuid.uuid1())
-        if not title: title = name
+        if not name:
+            name = 'canvas_'+str(uuid.uuid1())
+        if not title:
+            title = name
 
         w,h = self._computesize() #new
 
@@ -426,7 +462,7 @@ class Canvas(object):
 
         k = 2
 
-        for (i,j),pad in self._gridX.iteritems():
+        for (i,j),pad in self._grid.iteritems():
             if not pad: continue
 
             # assule left-top alignement
@@ -955,7 +991,3 @@ if __name__ == '__main__':
 #     tc.Print('des.png')
     tc.Print('des.pdf')
     tc.Print('des.root')
-
-
-
-
