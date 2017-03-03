@@ -41,11 +41,28 @@ _tcanvas_winframe_height = 28
 
 # ______________________________________________________________________________
 def _makecanvas(name, title, w, h):
-    '''What about usign TCanvas.SetCanvasSize to ensure the correct geometry?'''
-    return ROOT.TCanvas(name, title, w+_tcanvas_winframe_width, h+_tcanvas_winframe_height)
+    '''Helper method to account for Canvas borders
+
+    What about usign TCanvas.SetCanvasSize to ensure the correct geometry?
+
+    Parameters
+    ----------
+
+    title : str
+        Cavas name.
+
+    w : int
+        Canvas width.
+
+    h : int
+        Canvas height.
+    '''
+    return ROOT.TCanvas(name, title, w + _tcanvas_winframe_width, h + _tcanvas_winframe_height)
 
 
 class StyleSetter(object):
+    '''Utility class to apply settings to ROOT objects
+    '''
     _log = logging.getLogger('StyleSetter')
 
     @staticmethod
@@ -115,6 +132,23 @@ class StyleSetter(object):
 # /_/    \__,_/\__,_/
 #
 class Pad(object):
+    '''Wrapper of the ROOT.Pad class.
+
+    Parameters
+    ----------
+
+    name : str
+        Pad name.
+
+    width : int, optional
+        Pad width.
+
+    height : int, optional
+        Pad height.
+
+    **opts :
+        Arbitrary style parameters
+    '''
     _log = logging.getLogger('Pad')
 
     _axisstyle = {
@@ -130,6 +164,7 @@ class Pad(object):
 
     # __________________________________________________________________________
     def __init__(self, name, width=500, height=500, **opts):
+
         self._name = name
         self._w = width
         self._h = height
@@ -145,7 +180,7 @@ class Pad(object):
         # temp solution
 
         for n, o in opts.iteritems():
-            attr = '_'+n
+            attr = '_' + n
             if not hasattr(self, attr):
                 continue
             if n == 'xaxis' or n == 'yaxis':
@@ -219,7 +254,11 @@ class Pad(object):
 
     # __________________________________________________________________________
     def _applyframestyle(self):
+        '''Apply the style to the Pad's frame
+        '''
 
+        # Loop over the list of primitives. Stop at the first TH1, THStack or TMultiGraph
+        # TODO: What about simple TGraphs?
         h = None
         for o in self._obj.GetListOfPrimitives():
             if not (
@@ -240,10 +279,12 @@ class Pad(object):
 
         if not h: return
 
+        # Apply settings to the frame
+        frame = h.GetHistogram() if isinstance(h, ROOT.THStack) or isinstance(h, ROOT.TMultiGraph) else h
         if not self._showtitle:
-            frame = h.GetHistogram() if isinstance(h, ROOT.THStack) or isinstance(h, ROOT.TMultiGraph) else h
             frame.SetBit(ROOT.TH1.kNoTitle)
 
+            # Delete the histogram's title if already drawn
             for o in self._obj.GetListOfPrimitives():
                 if isinstance(o, ROOT.TPaveText) and o.GetName() == 'title':
                     ROOT.SetOwnership(o, True)
@@ -251,6 +292,7 @@ class Pad(object):
 
         if not self._showstats:
             frame.SetBit(ROOT.TH1.kNoStats)
+            # Delete the histogram's stats if already drawn
             o = h.FindObject('stats')
             if o.__nonzero__():
                 ROOT.SetOwnership(o, True)
@@ -262,49 +304,50 @@ class Pad(object):
 
         setter = StyleSetter()
 
+        # Calculate the style parameters for the X axis
         # TODO massive cleanup needed
         xax = h.GetXaxis()
         style = self._xaxis.copy()
         style['ticklength'] *= self._w / float(lax * self._h)
         style['labeloffset'] /= float(self._h - top - bottom)
 
-        # alwyas variable size fonts
-        style['titlefamily']  = style['titlefamily']*10+2
-        # print 'bu',style['titleoffset'], style['titlesize']
+        # Force variable size fonts
+        style['titlefamily']  = style['titlefamily'] * 10 + 2
         # TODO careful the order here is important, as titleoffset is using titlesize in pixels
-        style['titleoffset'] *= 1./(1.6*style['titlesize']) if style['titlesize'] else 0
+        style['titleoffset'] *= 1. / (1.6 * style['titlesize']) if style['titlesize'] else 0
         style['titlesize']   /= float(self._h)
-        style['labelfamily']  = style['labelfamily']*10+2
+        style['labelfamily']  = style['labelfamily'] * 10 + 2
         style['labelsize']   /= float(self._h)
-        #print '->>>oioioioioi',style['titlefamily'],style['titlesize'],style['titleoffset']
 
-        setter.apply(xax,**style)
-        self._log.debug('tick xaxis: %s => %s',self._xaxis['ticklength'],style['ticklength'])
+        # Apply the calculated style to the Y axis
+        setter.apply(xax, **style)
+        self._log.debug('tick xaxis: %s => %s', self._xaxis['ticklength'], style['ticklength'])
 
-
+        # Calculate the style parameters for the Y axis
         yax = h.GetYaxis()
         style = self._yaxis.copy()
-        style['ticklength']   *= self._h/float(lay*self._w)
-        style['labeloffset']  /= float(self._w-left-right)
-        #style['titleoffset'] *= self._obj.GetWh()/(1.6*self._w*style['titlesize']) if style['titlesize'] else 0
+        style['ticklength']   *= self._h / float( lay * self._w)
+        style['labeloffset']  /= float(self._w - left - right)
+        # style['titleoffset'] *= self._obj.GetWh()/(1.6*self._w*style['titlesize']) if style['titlesize'] else 0
 
-        style['titlefamily']  = style['titlefamily']*10+2
-        #print 'bu',style['titleoffset'], style['titlesize']
-        #style['titleoffset'] *= 1./(1.6*style['titlesize']) if style['titlesize'] else 0
-        style['titleoffset'] *= self._h/(1.6*style['titlesize']*self._w) if style['titlesize'] else 0
+        style['titlefamily']  = style['titlefamily'] * 10 + 2
+        # print 'bu',style['titleoffset'], style['titlesize']
+        # style['titleoffset'] *= 1./(1.6*style['titlesize']) if style['titlesize'] else 0
+        style['titleoffset'] *= self._h / (1.6 * style['titlesize'] * self._w) if style['titlesize'] else 0
         style['titlesize']   /= float(self._h)
-        style['labelfamily']  = style['labelfamily']*10+2
+        style['labelfamily']  = style['labelfamily'] * 10 + 2
         style['labelsize']   /= float(self._h)
-        #print '->>> Y',style['titlefamily'],style['titlesize'],style['titleoffset']
+        # print '->>> Y',style['titlefamily'],style['titlesize'],style['titleoffset']
 
-        setter.apply(yax,**style)
+        # Apply the calculated style to the Y axis
+        setter.apply(yax, **style)
 
         self.Modified()
-        self._log.debug('tick yaxis: %s =>  %s',self._yaxis['ticklength'])
+        self._log.debug('tick yaxis: %s =>  %s', self._yaxis['ticklength'])
     # __________________________________________________________________________
 
 
-#_______________________________________________________________________________
+# ______________________________________________________________________________
 #     ______          __             ______            __
 #    / ____/___ ___  / /_  ___  ____/ / __ \____ _____/ /
 #   / __/ / __ `__ \/ __ \/ _ \/ __  / /_/ / __ `/ __  /
@@ -316,13 +359,14 @@ class EmbedPad(object):
     Wrapper to easily embed a tcanvas in as Pad
     '''
 
-    def __init__(self,tcanvas,align=('c','m')):
+    def __init__(self, tcanvas, align=('c', 'm')):
         self._tcanvas = tcanvas
         self._align   = align
         self._obj     = None
 
     @property
     def w(self): return self._tcanvas.GetWw()
+
     @property
     def h(self): return self._tcanvas.GetWh()
 
@@ -336,7 +380,7 @@ class EmbedPad(object):
         self._tcanvas.DrawClonePad()
 
 
-#_______________________________________________________________________________
+# ______________________________________________________________________________
 #    ______
 #   / ____/___ _____ _   ______ ______
 #  / /   / __ `/ __ \ | / / __ `/ ___/

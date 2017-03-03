@@ -9,26 +9,82 @@ from copy import deepcopy
 
 # --------------------------------------------------------------------------
 class _baseratiostyle(object):
-    '''Base class holding all ratio-plot style settings
+    '''Base class holding all ratio-plot style settings.
+
+    Derived classes are expected to implement the attributes
+
+    scalemax: float
+    scalemin: float
+    ltitle: str
+        Top-left title.
+
+    rtitle: str
+        Top-right title.
+
+    ytitle2: str
+        Ratio-plot y-axis title.
+
+    colors: list[int]
+        Colors for histograms.
+
+    markers: list[int]
+        Markers for histograms.
+
+    fills: list[int]
+        Fill styles for histograms.
+
+    plotratio: bool
+        Enables/disables the ratio plot.
+
+    left: int
+    right: int
+    top: int
+    bottom: int
+
+    gap: int
+    width: int
+    heightf0: int
+    heightf1: int
+
+    To be continued...
+
     '''
 
     # -----------------------------------------------------------------------
     @property
     def legalign(self):
+        '''Legend alignment getter
+        '''
         return self._legalign
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
     @legalign.setter
     def legalign(self, align):
+        '''Legent alignment setter
+
+        Parameters
+        ----------
+        align: tuple(str,str)
+            Horizontal and vertical alignment (ha, va) of the legend with respect to the borders.
+            ha: 'l' or 'r'
+            va: 't' or 'b'
+        '''
         ha, va = align
-        if ha not in 'lr': raise ValueError('Align can only be \'l\' or \'r\'')
-        if va not in 'tb': raise ValueError('Align can only be \'t\' or \'b\'')
+        if ha not in 'lr': raise ValueError("Align can only be 'l or 'r'")
+        if va not in 'tb': raise ValueError("Align can only be 't' or 'b'")
         self._legalign = align
     # ----------------------------------------------------------------------
 
     # ----------------------------------------------------------------------
     def scale(self, factor):
+        '''Scale all style parameters by a common factor
+
+        Parameters
+        ----------
+        factor: int
+            Scaling factor.
+        '''
         self.left        = int(factor * self.left)
         self.right       = int(factor * self.right)
         self.top         = int(factor * self.top)
@@ -108,11 +164,8 @@ class smallratiostyle(_baseratiostyle):
             'ndivisions'  : 505,
         }
 
-        self.xaxsty = {
-        }
-
-        self.yaxsty = {
-        }
+        self.xaxsty = {}
+        self.yaxsty = {}
 
         self.errsty      = 3005
         self.errcol      = ROOT.kGray + 1
@@ -329,9 +382,10 @@ class H1RatioPlotter(object):
         Parameters
         ----------
         options: str
+            Additional TH1::Draw options
         '''
 
-        style = self._style
+        style     = self._style
 
         # Local references of style variables
         left       = style.left
@@ -590,7 +644,7 @@ if __name__ == '__main__':
 
     for i in xrange(entries):
         hFill(h1, gaus(50, 10))
-        hFill(h2, gaus(51, 10))
+        hFill(h2, gaus(48, 10))
 
     diff = H1RatioPlotter()
     diff.set(h2, h1)
