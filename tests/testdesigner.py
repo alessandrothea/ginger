@@ -175,7 +175,7 @@ if __name__ == '__main__':
     tc.Print('des_paper.pdf')
     tc.Print('des_paper.png')
 
-    tc.SetCanvasSize(tc.GetWw()/2, tc.GetWh()/2)
+    tc.SetCanvasSize(tc.GetWw() / 2, tc.GetWh() / 2)
     tc.Modified()
     tc.Update()
     tc.Print('des_small.pdf')

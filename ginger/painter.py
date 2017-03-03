@@ -388,42 +388,51 @@ class EmbedPad(object):
 # \____/\__,_/_/ /_/|___/\__,_/____/
 #
 class Canvas(object):
+    '''Wrapper of the ROO Canvas class
+
+    Parameters
+    ----------
+
+    minsize: tuple(int,int), optional
+        Minimum pad size.
+    '''
     _log = logging.getLogger('Canvas')
 
-    #---
-    def __init__(self, minsize=(0,0)):
+    # --------------------------------------------------------------------------
+    def __init__(self, minsize=(0, 0)):
         self._minsize = minsize
         self._pads = []
-        self._grid = {} #new
+        self._grid = {}  # new
         self._hrows = []
         self._wcols = []
         self._obj = None
-    #---
+    # --------------------------------------------------------------------------
+
+    # --------------------------------------------------------------------------
     def __del__(self):
         del self._obj
 
-
-    #---
-    def __getattr__(self,name):
+    # --------------------------------------------------------------------------
+    def __getattr__(self, name):
         if not self._obj:
             raise AttributeError
-        return getattr(self._obj,name)
+        return getattr(self._obj, name)
 
     # the alignement should be decided here
     def attach(self, pad, i, j ):
-        #if ( i < 0 and i > self._nx ) or ( j < 0 and j > self._ny ):
-            #raise IndexError('Index out of bounds (%d,%d) not in [0,%d],[0,%d]' % (i,j,self._nx,self._ny))
+        # if ( i < 0 and i > self._nx ) or ( j < 0 and j > self._ny ):
+            # raise IndexError('Index out of bounds (%d,%d) not in [0,%d],[0,%d]' % (i,j,self._nx,self._ny))
 
-        #old = self._grid[i][j]
-        #if not old is None: self._pads.pop(old)
+        # old = self._grid[i][j]
+        # if not old is None: self._pads.pop(old)
 
-        self._grid[i,j] = pad #new
+        self._grid[i, j] = pad  # new
         if not pad: return
 
         self._pads.append(pad)
 
-    def __setitem__(self,key,value):
-        if not isinstance(key,tuple):
+    def __setitem__(self, key, value):
+        if not isinstance(key, tuple):
             raise TypeError('XXXX')
 
         if len(key) != 2:
@@ -431,15 +440,16 @@ class Canvas(object):
 
         self.attach( value, *key )
 
-    #---
-    def get(self,i,j):
-        pad = self._grid[i,j] if (i,j) in self._grid else None
+    # --------------------------------------------------------------------------
+    def get(self, i, j):
+        pad = self._grid[i, j] if (i, j) in self._grid else None
 
         return pad
+    # --------------------------------------------------------------------------
 
-    #---
+    # --------------------------------------------------------------------------
     def __getitem__(self, key):
-        if not isinstance(key,tuple):
+        if not isinstance(key, tuple):
             raise TypeError('XXXX')
 
         if len(key) != 2:
@@ -447,24 +457,23 @@ class Canvas(object):
 
         return self.get( *key )
 
-    #---
     # __________________________________________________________________________
-    def _computesize(self): # new
+    def _computesize(self):  # new
 
-        nx = max( i for i,j in self._grid.iterkeys())+1
-        ny = max( j for i,j in self._grid.iterkeys())+1
+        nx = max( i for i, j in self._grid.iterkeys()) + 1
+        ny = max( j for i, j in self._grid.iterkeys()) + 1
 
-        #print nx,ny,self._grid.keys()
+        # print nx,ny,self._grid.keys()
 
-        mw,mh = self._minsize
-        hrows = [mh]*ny
-        wcols = [mw]*nx
+        mw, mh = self._minsize
+        hrows = [mh] * ny
+        wcols = [mw] * nx
 
-        for (i,j),pad in self._grid.iteritems():
+        for (i, j), pad in self._grid.iteritems():
             if not pad: continue
-            wcols[i] = max(wcols[i],pad.w)
-            hrows[j] = max(hrows[j],pad.h)
-            #print wcols[i],hrows[j]
+            wcols[i] = max(wcols[i], pad.w)
+            hrows[j] = max(hrows[j], pad.h)
+            # print wcols[i],hrows[j]
 
         self._hrows = hrows
         self._wcols = wcols
@@ -480,93 +489,93 @@ class Canvas(object):
 
     # __________________________________________________________________________
     def gridsize(self):
-        nx = max( i for i,j in self._grid.iterkeys())+1
-        ny = max( j for i,j in self._grid.iterkeys())+1
-        return nx,ny
+        nx = max( i for i, j in self._grid.iterkeys()) + 1
+        ny = max( j for i, j in self._grid.iterkeys()) + 1
+        return nx, ny
     # __________________________________________________________________________
 
     # __________________________________________________________________________
-    def _getanchors(self,i,j):
-        return sum(self._wcols[0:i]),sum(self._hrows[0:j])
+    def _getanchors(self, i, j):
+        return sum(self._wcols[0:i]), sum(self._hrows[0:j])
     # __________________________________________________________________________
 
     # __________________________________________________________________________
     def makecanvas(self, name=None, title=None):
 
         if not name:
-            name = 'canvas_'+str(uuid.uuid1())
+            name = 'canvas_' + str(uuid.uuid1())
         if not title:
             title = name
 
-        w,h = self._computesize() #new
+        w, h = self._computesize()  # new
 
-        fw,fh = float(w),float(h)
-        c = _makecanvas(name,title,w,h)
+        fw, fh = float(w), float(h)
+        c = _makecanvas(name, title, w, h)
         c.Draw()
 
         k = 2
 
-        for (i,j),pad in self._grid.iteritems():
+        for (i, j), pad in self._grid.iteritems():
             if not pad: continue
 
             # assule left-top alignement
-            x0,y0 = self._getanchors(i,j)
-            x1,y1 = x0+pad.w,y0+pad.h
+            x0, y0 = self._getanchors(i, j)
+            x1, y1 = x0 + pad.w, y0 + pad.h
 
-            gw,gh = self._wcols[i],self._hrows[j]
+            gw, gh = self._wcols[i], self._hrows[j]
 #                 print i,j,gw,gh,pad.w,pad.h
 
-            ha,va = pad._align
+            ha, va = pad._align
 
-            if   va == 't':
+            if va == 't':
                 pass
             elif va == 'm':
-                y0 += (gh-pad.h)/2.
-                y1 += (gh-pad.h)/2.
+                y0 += (gh - pad.h) / 2.
+                y1 += (gh - pad.h) / 2.
             elif va == 'b':
-                y0 += gh-pad.h
-                y1 += gh-pad.h
+                y0 += gh - pad.h
+                y1 += gh - pad.h
             else:
                 raise KeyError('Unknown vertical alignement %s', va)
 
-            if   ha == 'l':
+            if ha == 'l':
                 pass
             elif ha == 'c':
-                x0 += (gw-pad.w)/2.
-                x1 += (gw-pad.w)/2.
+                x0 += (gw - pad.w) / 2.
+                x1 += (gw - pad.w) / 2.
             elif ha == 'r':
-                x0 += gw-pad.w
-                x1 += gw-pad.w
+                x0 += gw - pad.w
+                x1 += gw - pad.w
             else:
                 raise KeyError('Unknown horizontal alignement %s', ha)
 
-            pname = 'pad_%d_%d' % (i,j)
+            pname = 'pad_%d_%d' % (i, j)
 
 #                 print pname,' [%d,%d][%d,%d] - [%d,%d][%d,%d]'% (x0,x1,y0,y1,x0,x1,(h-y1),(h-y0)), k
 #                 print pname,x0/fw,(h-y0)/fh,x1/fw,(h-y1)/fh, k
-            tpad = ROOT.TPad(pname,pname,x0/fw,(h-y1)/fh,x1/fw,(h-y0)/fh)#, k)
+            tpad = ROOT.TPad(pname, pname, x0 / fw, (h - y1) / fh, x1 / fw, (h - y0) / fh )  # , k)
             tpad.Draw()
-            ROOT.SetOwnership(tpad,False)
+            ROOT.SetOwnership(tpad, False)
             pad._obj = tpad
             pad._applypadstyle()
             k += 1
 
-
-        ROOT.SetOwnership(c,False)
+        ROOT.SetOwnership(c, False)
         self._obj = c
         return c
 
-    #---
+    # --------------------------------------------------------------------------
     def applystyle(self):
 
         for p in self._pads:
             p._applyframestyle()
 
         # restore after makein g a proper interface for pad (or not)
-        #map(Pad._applyframestyle,self._pads)
+        # map(Pad._applyframestyle,self._pads)
+    # --------------------------------------------------------------------------
 
 
-#_______________________________________________________________________________
+# ______________________________________________________________________________
 #     __                              __
 #    / /   ___  ____ ____  ____  ____/ /
 #   / /   / _ \/ __ `/ _ \/ __ \/ __  /
@@ -838,7 +847,7 @@ class Legend(object):
                 leg.SetY2( v1 )
                 leg.Draw()
 
-#_______________________________________________________________________________
+# ______________________________________________________________________________
 #     __          __
 #    / /   ____ _/ /____  _  __
 #   / /   / __ `/ __/ _ \| |/_/

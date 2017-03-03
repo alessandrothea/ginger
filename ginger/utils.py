@@ -17,18 +17,18 @@ class Directory:
     @property
     def objs(self):
         return {
-                k: a for k, a in self.__dict__.iteritems()
-                if (not isinstance(a, Directory) and not k[0] == '_')
-                }
+            k: a for k, a in self.__dict__.iteritems()
+            if (not isinstance(a, Directory) and not k[0] == '_')
+        }
     # --------------------------------------------------------------------------
 
     # --------------------------------------------------------------------------
     @property
     def dirs(self):
         return {
-                (k, a) for k, a in self.__dict__.iteritems()
-                if (isinstance(a, Directory) and not k[0] == '_')
-                }
+            (k, a) for k, a in self.__dict__.iteritems()
+            if (isinstance(a, Directory) and not k[0] == '_')
+        }
     # --------------------------------------------------------------------------
 
     # --------------------------------------------------------------------------
@@ -45,14 +45,14 @@ class Directory:
 
     # --------------------------------------------------------------------------
     def show(self, indent=0, level=-1):
-        print ' '*indent+'+', self._name
+        print ' ' * indent + '+', self._name
         for k, a in self.__dict__.iteritems():
             if k[0] == '_':
                 continue
             if isinstance(a, Directory):
-                a.show(indent+1)
+                a.show(indent + 1)
             else:
-                print ' '*(indent+1)+'-', k, '=', a
+                print ' ' * (indent + 1) + '-', k, '=', a
     # --------------------------------------------------------------------------
 
     # --------------------------------------------------------------------------
@@ -91,9 +91,10 @@ class Tee(object):
     def flush(self):
         self.file.flush()
         self.stdout.flush()
+# ------------------------------------------------------------------------------
 
 
-# ---
+# ------------------------------------------------------------------------------
 class TH1AddDirSentry:
     def __init__(self, status=False):
         self.status = ROOT.TH1.AddDirectoryStatus()
@@ -166,12 +167,12 @@ class PadPrinter(object):
     def saveas(self, pad, filename):
 
         oldpad = ROOT.gPad.func()
-        ww = int(pad.GetWNDC()*pad.GetWw())
-        wh = int(pad.GetHNDC()*pad.GetWh())
+        ww = int(pad.GetWNDC() * pad.GetWw())
+        wh = int(pad.GetHNDC() * pad.GetWh())
 
         nm = '%s_%s' % (filename, pad.GetName())
 
-        c = ROOT.TCanvas(nm, nm, ww+self._tcanvas_winframe_width, wh+self._tcanvas_winframe_height)
+        c = ROOT.TCanvas(nm, nm, ww + self._tcanvas_winframe_width, wh + self._tcanvas_winframe_height)
         c.cd()
 
         newpad = pad.DrawClone()
@@ -191,8 +192,8 @@ class PadPrinter(object):
     # ---
     def savefromcanvas(self, canvas, **pads):
         # waiting for python 2.7
-        #args = {n:canvas.GetPad(i) for n,i in pads.iteritems()}
-        args = dict( [ (n,canvas.GetPad(i)) for n, i in pads.iteritems() ] )
+        # args = {n:canvas.GetPad(i) for n,i in pads.iteritems()}
+        args = dict( [ (n, canvas.GetPad(i)) for n, i in pads.iteritems() ] )
 
         self.saveall(**args)
 
