@@ -131,13 +131,13 @@ if __name__ == '__main__':
     d3.GetXaxis().SetTitle('x-axis')
     d3.Draw()
 
-    pad = c.get(1,2)
+    pad = c.get(1, 2)
     pad.cd()
     d4 = hdummy.Clone('d4')
     d4.GetXaxis().SetTitle('x-axis')
     d4.Draw('Y+')
 
-    pad = c.get(1,1)
+    pad = c.get(1, 1)
     pad.cd()
     d5 = hdummy.Clone('d5')
     d5.GetXaxis().SetTitle('x-axis')
@@ -156,18 +156,9 @@ if __name__ == '__main__':
 
     c.applystyle()
     c.SetFillColor(ROOT.kOrange)
-    # p0.SetFillStyle(0)
-    # p1.SetFillStyle(0)
-    # p2.SetFillStyle(0)
-    # p3.SetFillStyle(0)
-    # p4.SetFillStyle(0)
-    # p5.SetFillStyle(0)
 
-#     tc.ls()
     ROOT.gSystem.ProcessEvents()
 
-
-#     tc.Print('des.png')
     tc.Print('des.pdf')
     tc.Print('des.png')
 

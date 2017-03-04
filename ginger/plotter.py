@@ -131,7 +131,7 @@ class smallratiostyle(_baseratiostyle):
         self.ltitle    = ''
         self.rtitle    = ''
         self.ytitle2   = 'ratio'
-        self.colors    = [kRed+1      , kOrange+7   , kAzure-6    , kAzure+9    , kOrange+7   , kOrange-2  ]
+        self.colors    = [kRed + 1    , kOrange + 7 , kAzure - 6  , kAzure + 9  , kOrange + 7 , kOrange - 2]
         self.markers   = [kFullCircle , kOpenCircle , kFullCircle , kOpenCircle , kFullCircle , kFullCircle]
         self.fills     = [0           , 0           , 0           , 0           , 0           , 0          ]
         self.plotratio = True
@@ -203,7 +203,7 @@ class ratiostyle(_baseratiostyle):
         self.ltitle    = ''
         self.rtitle    = ''
         self.ytitle2   = 'ratio'
-        self.colors    = [kRed+1      , kOrange+7   , kAzure-6    , kAzure+9    , kOrange+7   , kOrange-2  ]
+        self.colors    = [kRed + 1    , kOrange + 7 , kAzure - 6  , kAzure + 9  , kOrange + 7 , kOrange - 2]
         self.markers   = [kFullCircle , kOpenCircle , kFullCircle , kOpenCircle , kFullCircle , kFullCircle]
         self.fills     = [0           , 0           , 0           , 0           , 0           , 0          ]
         self.plotratio = True
@@ -436,7 +436,7 @@ class H1RatioPlotter(object):
         c = Canvas()
         if style.plotratio:
             self._pad0 = c[0, 0] = Pad('p0', pw, ph0, margins=(left, right, top,    gap), xaxis=rxaxsty, yaxis=yaxsty)
-            self._pad1 = c[0, 1] = Pad('p0', pw, ph1, margins=(left, right, gap, bottom), xaxis=xaxsty,  yaxis=ryaxsty)
+            self._pad1 = c[0, 1] = Pad('p1', pw, ph1, margins=(left, right, gap, bottom), xaxis=xaxsty,  yaxis=ryaxsty)
         else:
             self._pad0 = c[0, 0] = Pad('p0', pw, ph,  margins=(left, right, top, bottom), xaxis=xaxsty, yaxis=yaxsty)
 
@@ -599,6 +599,7 @@ class H1RatioPlotter(object):
             dstack.Add(herrDw, 'hist')
             map(dstack.Add, hratios[1:])
 
+            self._pad1.cd()
             dstack.Draw('nostack %s' % options )
             dstack.SetMinimum(0.)
             dstack.SetMaximum(2.)
@@ -626,43 +627,43 @@ class H1RatioPlotter(object):
         return c
 
 
-if __name__ == '__main__':
-    import os.path
-
-    ROOT.TH1.SetDefaultSumw2()
-    # mypath = os.path.dirname(os.path.abspath(__file__))
-    # ROOT.gInterpreter.ExecuteMacro(mypath+'/LatinoStyle2.C')
-
-    # def resize(x, ratio):
-    #     x.SetLabelSize(x.GetLabelSize() * ratio / (1 - ratio))
-    #     x.SetTitleSize(x.GetTitleSize() * ratio / (1 - ratio))
-
-    h1 = ROOT.TH1F('aa', 'aaaaaaaa;Some X;Entries', 100, 0, 100)
-    h2 = ROOT.TH1F('bb', 'bbbbbbbb;Some X;Entries', 100, 0, 100)
-
-    hFill = ROOT.TH1F.Fill
-    gaus = ROOT.gRandom.Gaus
-
-    entries = 100000
-
-    for i in xrange(entries):
-        hFill(h1, gaus(50, 10))
-        hFill(h2, gaus(48, 10))
-
-    diff = H1RatioPlotter()
-    diff.set(h2, h1)
-
-    diff.yaxsty['titleoffset'] = 100
-    diff.left = 150
-    diff.ltitle = "la rava"
-    diff.rtitle = "e la fava"
-
-    c = diff.plot()
-
-    c.Print('H1DiffTester.pdf')
-
-    import sys
-    sys.exit(0)
+# if __name__ == '__main__':
+#     import os.path
+#
+#     ROOT.TH1.SetDefaultSumw2()
+#     # mypath = os.path.dirname(os.path.abspath(__file__))
+#     # ROOT.gInterpreter.ExecuteMacro(mypath+'/LatinoStyle2.C')
+#
+#     # def resize(x, ratio):
+#     #     x.SetLabelSize(x.GetLabelSize() * ratio / (1 - ratio))
+#     #     x.SetTitleSize(x.GetTitleSize() * ratio / (1 - ratio))
+#
+#     h1 = ROOT.TH1F('aa', 'aaaaaaaa;Some X;Entries', 100, 0, 100)
+#     h2 = ROOT.TH1F('bb', 'bbbbbbbb;Some X;Entries', 100, 0, 100)
+#
+#     hFill = ROOT.TH1F.Fill
+#     gaus = ROOT.gRandom.Gaus
+#
+#     entries = 100000
+#
+#     for i in xrange(entries):
+#         hFill(h1, gaus(50, 10))
+#         hFill(h2, gaus(48, 10))
+#
+#     diff = H1RatioPlotter()
+#     diff.set(h2, h1)
+#
+#     diff.yaxsty['titleoffset'] = 100
+#     diff.left = 150
+#     diff.ltitle = "la rava"
+#     diff.rtitle = "e la fava"
+#
+#     c = diff.plot()
+#
+#     c.Print('H1DiffTester.pdf')
+#
+#     import sys
+#     sys.exit(0)
 
 
 # # helper plot class

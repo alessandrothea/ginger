@@ -616,6 +616,8 @@ class Canvas(object):
         k = 2
 
         for (i, j), pad in self._grid.iteritems():
+            # Switch back to the canvas at each iteration
+            c.cd()
             if not pad: continue
 
             # assule left-top alignement
@@ -623,7 +625,7 @@ class Canvas(object):
             x1, y1 = x0 + pad.w, y0 + pad.h
 
             gw, gh = self._wcols[i], self._hrows[j]
-#                 print i,j,gw,gh,pad.w,pad.h
+            # print i,j,gw,gh,pad.w,pad.h
 
             ha, va = pad._align
 
@@ -1067,122 +1069,122 @@ class Latex:
         self._latex.Draw()
 
 
-if __name__ == '__main__':
-
-    sys.argv.append('-b')
-    ROOT.gROOT.SetBatch()
-
-    c = Canvas(2, 3)
-
-    axst = {
-        'labelfamily': 44,
-        'labelsize'  : 20,
-        'labeloffset': 0,
-        'titlefamily': 44,
-        'titlesize'  : 20,
-        'titleoffset': 50,
-        'ticklength' : 10
-    }
-#     axst = {'label-family':42, 'label-size':0.04, }
-
-    p0 = Pad('p0', 200, 500, margins=(20, 80, 80, 20), xaxis=axst, yaxis=axst, align=('l', 'b')  )
-    p1 = Pad('p1', 500, 500, margins=(80, 20, 20, 20), xaxis=axst, yaxis=axst )
-    p2 = Pad('p2', 500, 200, margins=(80, 20, 20, 20), xaxis=axst, yaxis=axst )
-    p3 = Pad('p3', 500, 200, margins=(80, 20, 20, 80), xaxis=axst, yaxis=axst )
-    p4 = Pad('p4', 200, 200, margins=(20, 80, 20, 80), xaxis=axst, yaxis=axst )
-    p5 = Pad('p5', 200, 200, margins=(20, 80, 80, 20), xaxis=axst, yaxis=axst, align=('l', 'b') )
-    p1._xaxis['label-size'] = 0.0
-    p2._xaxis['label-size'] = 0.0
-#     p3._xaxis['title-offset'] = 2.5
-#     p4._xaxis['title-offset'] = 2.5
-
-#     c.attach(p0,1,0)
-    c[1, 0] = p0
-    c.attach(p1, 0, 0)
-    c.attach(p2, 0, 1)
-    c.attach(p3, 0, 2)
-    c.attach(p4, 1, 2)
-    c.attach(p5, 1, 1)
-
-    tc = c.makecanvas()
-    tc.SetName('aaa')
-
-    bins = 10
-    hdummy = ROOT.TH1F('dummy', '', bins, 0, bins)
-    hs = ROOT.THStack('stack', 'stocazz')
-    hcols = []
-    for i in xrange(bins):
-        h = hdummy.Clone('col%d' % i)
-        h.SetTitle(h.GetName())
-        h.SetFillColor(i + ROOT.kOrange)
-        h.SetLineColor(i + ROOT.kOrange)
-        h.SetFillStyle(3001)
-        h.SetLineWidth(2)
-        h.Fill(i, i)
-        ROOT.SetOwnership(h, False)
-        hs.Add(h)
-        hcols.append(h)
-
-    p1.cd()
-    hs1 = hs.Clone('xxx')
-    hs1.Draw()
-    hs1.GetYaxis().SetTitle('y-axis')
-    hs1.GetXaxis().SetTitle('x-axis')
-#     hs.Draw()
-    leg = Legend(4, 4, 80, 30, anchor=(90, 30))
-    sequence = leg.sequence
-    sequence.remove( (1, 3) )
-    sequence.remove( (2, 3) )
-    sequence.remove( (2, 2) )
-    leg.sequence = sequence
-    leg.addentry(hcols[0], 'f')
-    leg.addentry(hcols[1], 'f')
-    leg.addentry(hcols[2], 'f')
-    leg.addentry(hcols[3], 'f')
-    leg.addentry(hcols[4], 'f')
-    leg.addentry(hcols[5], 'f')
-    leg.addentry(hcols[6], 'f')
-    leg.addentry(hcols[7], 'f')
-    leg.addentry(hcols[8], 'f')
-    leg.addentry(hcols[9], 'f')
-    leg.draw()
-
-    p2.cd()
-    hs2 = hs.Clone('yyy')
-    hs2.Draw()
-    hs2.GetYaxis().SetTitle('y-axis')
-#     hs.Draw()
-
-    pad = c.get(0, 2)
-    pad.cd()
-    d3 = hdummy.Clone('d3')
-    d3.GetYaxis().SetTitle('y-axis')
-    d3.GetXaxis().SetTitle('x-axis')
-    d3.Draw()
-
-    pad = c.get(1, 2)
-    pad.cd()
-    d4 = hdummy.Clone('d4')
-    d4.GetXaxis().SetTitle('x-axis')
-    d4.Draw('Y+')
-
-    pad = c.get(1, 1)
-    pad.cd()
-    d5 = hdummy.Clone('d5')
-    d5.GetXaxis().SetTitle('x-axis')
-    d5.Draw('Y+')
-
-#     p0.cd()
-#     d0 = hdummy.Clone('d0')
-#     d0.GetXaxis().SetTitle('x-axis')
-#     d0.Draw('Y+')
-
-    c.applystyle()
-
-#     tc.ls()
-    ROOT.gSystem.ProcessEvents()
-
-
-#     tc.Print('des.png')
-    tc.Print('des.pdf')
-    tc.Print('des.root')
+# if __name__ == '__main__':
+#
+#     sys.argv.append('-b')
+#     ROOT.gROOT.SetBatch()
+#
+#     c = Canvas(2, 3)
+#
+#     axst = {
+#         'labelfamily': 44,
+#         'labelsize'  : 20,
+#         'labeloffset': 0,
+#         'titlefamily': 44,
+#         'titlesize'  : 20,
+#         'titleoffset': 50,
+#         'ticklength' : 10
+#     }
+# #     axst = {'label-family':42, 'label-size':0.04, }
+#
+#     p0 = Pad('p0', 200, 500, margins=(20, 80, 80, 20), xaxis=axst, yaxis=axst, align=('l', 'b')  )
+#     p1 = Pad('p1', 500, 500, margins=(80, 20, 20, 20), xaxis=axst, yaxis=axst )
+#     p2 = Pad('p2', 500, 200, margins=(80, 20, 20, 20), xaxis=axst, yaxis=axst )
+#     p3 = Pad('p3', 500, 200, margins=(80, 20, 20, 80), xaxis=axst, yaxis=axst )
+#     p4 = Pad('p4', 200, 200, margins=(20, 80, 20, 80), xaxis=axst, yaxis=axst )
+#     p5 = Pad('p5', 200, 200, margins=(20, 80, 80, 20), xaxis=axst, yaxis=axst, align=('l', 'b') )
+#     p1._xaxis['label-size'] = 0.0
+#     p2._xaxis['label-size'] = 0.0
+# #     p3._xaxis['title-offset'] = 2.5
+# #     p4._xaxis['title-offset'] = 2.5
+#
+# #     c.attach(p0,1,0)
+#     c[1, 0] = p0
+#     c.attach(p1, 0, 0)
+#     c.attach(p2, 0, 1)
+#     c.attach(p3, 0, 2)
+#     c.attach(p4, 1, 2)
+#     c.attach(p5, 1, 1)
+#
+#     tc = c.makecanvas()
+#     tc.SetName('aaa')
+#
+#     bins = 10
+#     hdummy = ROOT.TH1F('dummy', '', bins, 0, bins)
+#     hs = ROOT.THStack('stack', 'stocazz')
+#     hcols = []
+#     for i in xrange(bins):
+#         h = hdummy.Clone('col%d' % i)
+#         h.SetTitle(h.GetName())
+#         h.SetFillColor(i + ROOT.kOrange)
+#         h.SetLineColor(i + ROOT.kOrange)
+#         h.SetFillStyle(3001)
+#         h.SetLineWidth(2)
+#         h.Fill(i, i)
+#         ROOT.SetOwnership(h, False)
+#         hs.Add(h)
+#         hcols.append(h)
+#
+#     p1.cd()
+#     hs1 = hs.Clone('xxx')
+#     hs1.Draw()
+#     hs1.GetYaxis().SetTitle('y-axis')
+#     hs1.GetXaxis().SetTitle('x-axis')
+# #     hs.Draw()
+#     leg = Legend(4, 4, 80, 30, anchor=(90, 30))
+#     sequence = leg.sequence
+#     sequence.remove( (1, 3) )
+#     sequence.remove( (2, 3) )
+#     sequence.remove( (2, 2) )
+#     leg.sequence = sequence
+#     leg.addentry(hcols[0], 'f')
+#     leg.addentry(hcols[1], 'f')
+#     leg.addentry(hcols[2], 'f')
+#     leg.addentry(hcols[3], 'f')
+#     leg.addentry(hcols[4], 'f')
+#     leg.addentry(hcols[5], 'f')
+#     leg.addentry(hcols[6], 'f')
+#     leg.addentry(hcols[7], 'f')
+#     leg.addentry(hcols[8], 'f')
+#     leg.addentry(hcols[9], 'f')
+#     leg.draw()
+#
+#     p2.cd()
+#     hs2 = hs.Clone('yyy')
+#     hs2.Draw()
+#     hs2.GetYaxis().SetTitle('y-axis')
+# #     hs.Draw()
+#
+#     pad = c.get(0, 2)
+#     pad.cd()
+#     d3 = hdummy.Clone('d3')
+#     d3.GetYaxis().SetTitle('y-axis')
+#     d3.GetXaxis().SetTitle('x-axis')
+#     d3.Draw()
+#
+#     pad = c.get(1, 2)
+#     pad.cd()
+#     d4 = hdummy.Clone('d4')
+#     d4.GetXaxis().SetTitle('x-axis')
+#     d4.Draw('Y+')
+#
+#     pad = c.get(1, 1)
+#     pad.cd()
+#     d5 = hdummy.Clone('d5')
+#     d5.GetXaxis().SetTitle('x-axis')
+#     d5.Draw('Y+')
+#
+# #     p0.cd()
+# #     d0 = hdummy.Clone('d0')
+# #     d0.GetXaxis().SetTitle('x-axis')
+# #     d0.Draw('Y+')
+#
+#     c.applystyle()
+#
+# #     tc.ls()
+#     ROOT.gSystem.ProcessEvents()
+#
+#
+# #     tc.Print('des.png')
+#     tc.Print('des.pdf')
+#     tc.Print('des.root')
