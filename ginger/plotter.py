@@ -43,8 +43,11 @@ class _baseratiostyle(object):
 
     gap: int
     width: int
-    heightf0: int
-    heightf1: int
+    heighttop: int
+        Height of the upper histogram frame (top/1).
+
+    heightbot: int
+        Height of the lower histogram frame (bot/2).
 
     To be continued...
 
@@ -92,8 +95,8 @@ class _baseratiostyle(object):
 
         self.gap         = int(factor * self.gap)
         self.width       = int(factor * self.width)
-        self.heightf0    = int(factor * self.heightf0)
-        self.heightf1    = int(factor * self.heightf1)
+        self.heighttop    = int(factor * self.heighttop)
+        self.heightbot    = int(factor * self.heightbot)
 
         self.linewidth   = int(factor * self.linewidth)
         self.markersize  = int(factor * self.markersize)
@@ -141,8 +144,8 @@ class smallratiostyle(_baseratiostyle):
 
         self.gap         = 5
         self.width       = 250
-        self.heightf0    = 250
-        self.heightf1    = 100
+        self.heighttop    = 250
+        self.heightbot    = 100
 
         self.linewidth   = 1
         self.markersize  = 5
@@ -213,8 +216,8 @@ class ratiostyle(_baseratiostyle):
 
         self.gap         = 5
         self.width       = 500
-        self.heightf0    = 500
-        self.heightf1    = 200
+        self.heighttop   = 500
+        self.heightbot   = 200
 
         self.linewidth   = 2
         self.markersize  = 10
@@ -283,8 +286,8 @@ class ratiostyle(_baseratiostyle):
 
         self.gap         = int(factor * self.gap)
         self.width       = int(factor * self.width)
-        self.heightf0    = int(factor * self.heightf0)
-        self.heightf1    = int(factor * self.heightf1)
+        self.heighttop    = int(factor * self.heighttop)
+        self.heightbot    = int(factor * self.heightbot)
 
         self.linewidth   = int(factor * self.linewidth)
         self.markersize  = int(factor * self.markersize)
@@ -395,8 +398,8 @@ class H1RatioPlotter(object):
 
         gap        = style.gap
         width      = style.width
-        heightf0   = style.heightf0
-        heightf1   = style.heightf1
+        heighttop   = style.heighttop
+        heightbot   = style.heightbot
 
         linewidth  = style.linewidth
         markersize = style.markersize
@@ -416,10 +419,10 @@ class H1RatioPlotter(object):
 
         # Calculate height and width for the 2 pads
         pw = width + left + right
-        ph = heightf0 + top + bottom
+        ph = heighttop + top + bottom
 
-        ph0 = heightf0 + top + gap
-        ph1 = heightf1 + gap + bottom
+        ph0 = heighttop + top + gap
+        ph1 = heightbot + gap + bottom
 
         # Special settings for ratio-plot bounday axis
         rxaxsty, ryaxsty = deepcopy(xaxsty), deepcopy(axsty)
@@ -454,7 +457,7 @@ class H1RatioPlotter(object):
         # border between frame and legend
         ha, va = style.legalign
         x0 = (left + legmargin) if ha == 'l' else (left + width    - legmargin)
-        y0 = (top  + legmargin) if va == 't' else (top  + heightf0 - legmargin)
+        y0 = (top  + legmargin) if va == 't' else (top  + heighttop - legmargin)
         leg = Legend(1, len(hists), style.legboxsize, anchor=(x0, y0),  style={'textsize': self.legtextsize},  align=style.legalign)
 
         # ROOT marker size 1 = 8px. Convert pixel to root size

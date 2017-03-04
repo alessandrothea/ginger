@@ -34,6 +34,7 @@ import ROOT
 import uuid
 import sys
 import logging
+import utils
 
 _tcanvas_winframe_width = 4
 _tcanvas_winframe_height = 28
@@ -65,22 +66,25 @@ class StyleSetter(object):
     '''
     _log = logging.getLogger('StyleSetter')
 
-    @staticmethod
-    def _initsetters():
-        '''_setters is initialized here rather than in the class definition to
-        avoid ROOT to be fully loaded when importing this module'''
-        if hasattr(StyleSetter, '_setters'):
+    @classmethod
+    def __lazy_init__(cls):
+        '''Initialised the _setters attribut to
+        avoid ROOT to be fully loaded when the module is imported
+        '''
+
+        if hasattr(cls, '_setters'):
             return
-        StyleSetter._setters = {
+        cls._setters = {
             ROOT.TAttAxis: [
-                ('labelfamily', ROOT.TAxis.SetLabelFont),
-                ('labelsize',   ROOT.TAxis.SetLabelSize),
-                ('labeloffset', ROOT.TAxis.SetLabelOffset),
-                ('titlefamily', ROOT.TAxis.SetTitleFont),
-                ('titlesize',   ROOT.TAxis.SetTitleSize),
-                ('titleoffset', ROOT.TAxis.SetTitleOffset),
-                ('ticklength',  ROOT.TAxis.SetTickLength),
-                ('ndivisions',  ROOT.TAxis.SetNdivisions),
+                ('labelfamily',   ROOT.TAxis.SetLabelFont),
+                ('labelsize',     ROOT.TAxis.SetLabelSize),
+                ('labeloffset',   ROOT.TAxis.SetLabelOffset),
+                ('titlefamily',   ROOT.TAxis.SetTitleFont),
+                ('titlesize',     ROOT.TAxis.SetTitleSize),
+                ('titleoffset',   ROOT.TAxis.SetTitleOffset),
+                ('ticklength',    ROOT.TAxis.SetTickLength),
+                ('ndivisions',    ROOT.TAxis.SetNdivisions),
+                ('moreloglabels', ROOT.TAxis.SetMoreLogLabels),
             ],
 
             ROOT.TAttText: [
@@ -102,10 +106,16 @@ class StyleSetter(object):
                 ('fillstyle', ROOT.TAttFill.SetFillStyle),
                 ('fillstyle', ROOT.TAttFill.SetFillStyle),
             ],
+
+            ROOT.TAttMarker: [
+                ('markercolor', ROOT.TAttMarker.SetMarkerColor),
+                ('markerstyle', ROOT.TAttMarker.SetMarkerStyle),
+                ('markersize',  ROOT.TAttMarker.SetMarkerSize),
+            ]
         }
 
     def __init__(self, **opts):
-        self._initsetters()
+        self.__lazy_init__()
         self._opts = opts
 
     def apply(self, tobj, **opts):
@@ -121,6 +131,70 @@ class StyleSetter(object):
                 x = myopts.get(l, None)
                 if x is not None:
                     m(tobj, x)
+# ______________________________________________________________________________
+
+
+# ______________________________________________________________________________
+class Hist1D(object):
+    '''docstring for .'''
+
+    _log = logging.getLogger('Hist1D')
+
+    # _hist1dstyle = {
+    #     'linewidth'   : 2,
+    #     'linecolor'   : 1,  # ROOT.kBlack
+    #     'markersize'  : 1,
+    #     'markercolor' : 1,  # ROOT.kBlack
+    #     'markerstyle' : 20,  # ROOT.kFullCircle
+    #     'textsize'    : 15,
+    #     'fillstyle'   : 0,
+    # }
+
+    # __________________________________________________________________________
+    @classmethod
+    def __lazy_init__(cls):
+        '''Initialised the _hist1dstyle attribute to
+        avoid ROOT to be fully loaded when the module is imported
+        '''
+        if hasattr(cls, '_hist1dstyle'):
+            return
+        cls._hist1dstyle = {
+            'linewidth'   : 2,
+            'linecolor'   : ROOT.kBlack,
+            'markersize'  : 1,
+            'markercolor' : ROOT.kBlack,
+            'markerstyle' : ROOT.kFullCircle,
+            'textsize'    : 15,
+            'fillstyle'   : 0,
+        }
+    # __________________________________________________________________________
+
+    # __________________________________________________________________________
+    def __init__(self, h1):
+        if not isinstance(h1, ROOT.TH1):
+            raise TypeError("h1 is does not inherit from ROOT.TH1")
+
+        self.__lazy_init__(self.__class__)
+
+        sentry = utils.TH1AddDirSentry()
+        h1clone = h1.Clone()
+        ROOT.SetOwnership(h1clone, False)
+        self._obj = h1clone
+    # __________________________________________________________________________
+
+    # __________________________________________________________________________
+    def _applystyle(self):
+        styler = StyleSetter(**self._hist1dstyle)
+        styler.apply(self._obj)
+    # __________________________________________________________________________
+
+    # __________________________________________________________________________
+    def draw(self):
+        '''Applies the style and draw the object'''
+
+        self._applystyle()
+        self._obj.Draw()
+    # __________________________________________________________________________
 # ______________________________________________________________________________
 
 
@@ -171,7 +245,9 @@ class Pad(object):
         self._align = ('c', 'm')  # lcr
         self._showtitle = False
         self._showstats = False
+
         self._obj = None
+        self._subobj = []
 
         self._margins = (60, 60, 60, 60)
         self._xaxis = self._axisstyle.copy()
@@ -238,6 +314,21 @@ class Pad(object):
         if not self._obj:
             raise AttributeError('%s not found' % name)
         return getattr(self._obj, name)
+    # __________________________________________________________________________
+
+    # __________________________________________________________________________
+    def add(self, drawable, opts=''):
+        '''
+        Parameters:
+            drawable: Hist1D
+            opts: str, optional
+
+        '''
+
+        # if not isinstance(drawable, ROOT.TH1):
+        #     raise TypeError('Expeted ROOT.TH1, found %s' % drawable.__class__.__name__)
+
+        self._subobj.append(drawable)
     # __________________________________________________________________________
 
     # __________________________________________________________________________
@@ -417,20 +508,28 @@ class Canvas(object):
         if not self._obj:
             raise AttributeError
         return getattr(self._obj, name)
+    # --------------------------------------------------------------------------
 
+    # --------------------------------------------------------------------------
     # the alignement should be decided here
     def attach(self, pad, i, j ):
         # if ( i < 0 and i > self._nx ) or ( j < 0 and j > self._ny ):
             # raise IndexError('Index out of bounds (%d,%d) not in [0,%d],[0,%d]' % (i,j,self._nx,self._ny))
 
+        if not isinstance(pad, Pad):
+            raise TypeError('Expected Pad object, found %s' % pad.__class__.__name__)
+
+        # Remove old pad?
         # old = self._grid[i][j]
-        # if not old is None: self._pads.pop(old)
+        # if old is not None: self._pads.pop(old)
 
         self._grid[i, j] = pad  # new
         if not pad: return
 
         self._pads.append(pad)
+    # --------------------------------------------------------------------------
 
+    # --------------------------------------------------------------------------
     def __setitem__(self, key, value):
         if not isinstance(key, tuple):
             raise TypeError('XXXX')
@@ -439,6 +538,7 @@ class Canvas(object):
             raise RuntimeError('Wrong dimension')
 
         self.attach( value, *key )
+    # --------------------------------------------------------------------------
 
     # --------------------------------------------------------------------------
     def get(self, i, j):
@@ -558,6 +658,15 @@ class Canvas(object):
             ROOT.SetOwnership(tpad, False)
             pad._obj = tpad
             pad._applypadstyle()
+
+            # print 'B',p0._obj
+            # for pad in c._pads:
+            # print pad, p0._obj
+            # pad._obj.cd()
+            tpad.cd()
+            for o in pad._subobj:
+                o.draw()
+
             k += 1
 
         ROOT.SetOwnership(c, False)
@@ -574,6 +683,13 @@ class Canvas(object):
         # map(Pad._applyframestyle,self._pads)
     # --------------------------------------------------------------------------
 
+    # --------------------------------------------------------------------------
+    def draw(self):
+        tc = self.makecanvas()
+        self.applystyle()
+        return tc
+    # --------------------------------------------------------------------------
+
 
 # ______________________________________________________________________________
 #     __                              __
@@ -585,68 +701,82 @@ class Canvas(object):
 class Legend(object):
     _log = logging.getLogger('Legend')
 
-    _legendstyle = {
-        'textfamily' : 4,
-        'textsize'   : 20,
-        'textcolor'  : 1 #ROOT.kBlack
-    }
+    # --------------------------------------------------------------------------
+    @staticmethod
+    def __lazy_init__(cls):
+        '''Initialised the _legendstyle attribute to
+        avoid ROOT to be fully loaded when the module is imported
+        '''
+        cls._legendstyle = {
+            'textfamily' : 4,
+            'textsize'   : 20,
+            'textcolor'  : ROOT.kBlack,
+        }
+    # --------------------------------------------------------------------------
 
-    #---
+    # --------------------------------------------------------------------------
     def __init__(self, nx, ny, boxsize, **opts):
+
+        self.__lazy_init__(self.__class__)
+
         self._boxsize = boxsize
         self._nx = nx
         self._ny = ny
 
         self._labelwidth = None
-        self._anchor = (0,0)
-        self._align = ('c','m')
+        self._anchor = (0, 0)
+        self._align = ('c', 'm')
         self._style = self._legendstyle.copy()
 
-        for n,o in opts.iteritems():
-            attr = '_'+n
-            if not hasattr(self,attr): continue
+        for n, o in opts.iteritems():
+            attr = '_' + n
+            if not hasattr(self, attr): continue
             if n == 'style':
-                getattr(self,attr).update(o)
+                getattr(self, attr).update(o)
             else:
-                setattr(self,attr,o)
+                setattr(self, attr, o)
 
-        self._grid = [[None]*ny for i in xrange(nx)]
+        self._grid = [[None] * ny for i in xrange(nx)]
         self._legends = []
-        self._sequence = [ (i,j) for i in xrange(self._nx) for j in xrange(self._ny) ]
+        self._sequence = [ (i, j) for i in xrange(self._nx) for j in xrange(self._ny) ]
         self._cursor = 0
         self._maxlabelwidth = 0
+    # --------------------------------------------------------------------------
 
-    #---
+    # --------------------------------------------------------------------------
     def _rootstyle(self):
         '''Convert the pixel-based style into ROOT parameters'''
 
         # extract the pad height
         pad = ROOT.gPad.func()
-        ph = pad.GetWh()*pad.GetHNDC()
+        ph = pad.GetWh() * pad.GetHNDC()
 
         style = self._style.copy()
-        style['textfamily'] = style['textfamily']*10+2
+        style['textfamily'] = style['textfamily'] * 10 + 2
         style['textsize']  /= ph
         return style
+    # --------------------------------------------------------------------------
 
-    #---
+    # --------------------------------------------------------------------------
     @property
     def sequence(self):
         return self._sequence[:]
+    # --------------------------------------------------------------------------
 
-    #---
+    # --------------------------------------------------------------------------
     @sequence.setter
-    def sequence(self,value):
+    def sequence(self, value):
 
         if len(set(value)) != len(value):
             raise RuntimeError('There are duplicates in the new sequence!')
 
-        if len(value) > self._nx*self._ny:
+        if len(value) > self._nx * self._ny:
             raise ValueError('New sequence longer than label')
 
         self._sequence = value
+    # --------------------------------------------------------------------------
 
-    #---
+    # --------------------------------------------------------------------------
     def _updatebox(self):
         '''Recalculate the legend box parameters'''
         # apply the style to all the elements first
@@ -655,73 +785,72 @@ class Legend(object):
 
         # extract the pad size
         pad = ROOT.gPad.func()
-        pw = pad.GetWw()*pad.GetWNDC()
-        ph = pad.GetWh()*pad.GetHNDC()
+        pw = pad.GetWw() * pad.GetWNDC()
+        ph = pad.GetWh() * pad.GetHNDC()
 
         #
-        dummy = ROOT.TLatex(0,0,'')
+        dummy = ROOT.TLatex(0, 0, '')
         setter = StyleSetter(**(self._rootstyle()))
         setter.apply(dummy)
-
 
         uxmin = pad.GetUxmin()
         uxmax = pad.GetUxmax()
         uymin = pad.GetUymin()
         uymax = pad.GetUymax()
 
-        dx = (uxmax-uxmin)/(1-pad.GetLeftMargin()-pad.GetRightMargin())
-        dy = (uymax-uymin)/(1-pad.GetTopMargin()-pad.GetBottomMargin())
+        dx = (uxmax - uxmin) / (1 - pad.GetLeftMargin() - pad.GetRightMargin())
+        dy = (uymax - uymin) / (1 - pad.GetTopMargin() - pad.GetBottomMargin())
 
         # for each row and col check whether there is at lest an entry
-        hrows = [False]*self._ny
-        wcols = [False]*self._nx
+        hrows = [False] * self._ny
+        wcols = [False] * self._nx
         widths = []
 
-        for i,col in enumerate(self._grid):
-            for j,entry in enumerate(col):
+        for i, col in enumerate(self._grid):
+            for j, entry in enumerate(col):
                 if not entry: continue
                 wcols[i] = True
                 hrows[j] = True
-                (title,leg) = entry
+                (title, leg) = entry
 
                 dummy.SetTitle(title)
 
 #                 print pad.GetName(),dummy.GetTitle(),dummy.GetXsize()*pw/(ph*dx),dummy.GetYsize()/dy
-                #widths.append( dummy.GetXsize()*pw/(ph*dx) )
-                widths.append( dummy.GetXsize()*pw/(dx) )
+                # widths.append( dummy.GetXsize()*pw/(ph*dx) )
+                widths.append( dummy.GetXsize() * pw / (dx) )
 
         # add 10%
-        self._maxlabelwidth = int(max(widths)*1.1)
+        self._maxlabelwidth = int(max(widths) * 1.1)
 
         self._colcount = wcols.count(True)
         self._rowcount = hrows.count(True)
+    # --------------------------------------------------------------------------
 
-
-    #---
-    def _getanchor(self,i,j):
+    # --------------------------------------------------------------------------
+    def _getanchor(self, i, j):
         labelwidth = self._labelwidth if self._labelwidth is not None else self._maxlabelwidth
-        x0,y0 = self._anchor[0]+i*(labelwidth+self._boxsize),self._anchor[1]+j*self._boxsize
+        x0, y0 = self._anchor[0] + i * (labelwidth + self._boxsize), self._anchor[1] + j * self._boxsize
 
-        ha,va = self._align
-        if   va == 't':
+        ha, va = self._align
+        if va == 't':
             pass
         elif va == 'm':
-            y0 -= self._rowcount*self._boxsize/2.
+            y0 -= self._rowcount * self._boxsize / 2.
         elif va == 'b':
-            y0 -= self._rowcount*self._boxsize
+            y0 -= self._rowcount * self._boxsize
         else:
             raise KeyError('Unknown vertical alignement %s', va)
 
-        if   ha == 'l':
+        if ha == 'l':
             pass
         elif ha == 'c':
-            x0 -= self._colcount*(self._boxsize+labelwidth)/2.
+            x0 -= self._colcount * (self._boxsize + labelwidth) / 2.
         elif ha == 'r':
-            x0 -= self._colcount*(self._boxsize+labelwidth)
+            x0 -= self._colcount * (self._boxsize + labelwidth)
         else:
             raise KeyError('Unknown horizontal alignement %s', ha)
 
-        return x0,y0
+        return x0, y0
 
     #---
     def _applystyle(self,leg):
@@ -774,8 +903,8 @@ class Legend(object):
     def _point(self, x,y):
 
         pad = ROOT.gPad.func()
-        fw = pad.GetWw()*pad.GetWNDC()
-        fh = pad.GetWh()*pad.GetHNDC()
+        fw = pad.GetWw() * pad.GetWNDC()
+        fh = pad.GetWh() * pad.GetHNDC()
 
         mxsize = 16
         mosize = 8
@@ -819,12 +948,12 @@ class Legend(object):
         self._updatebox()
 
         pad = ROOT.gPad.func()
-        fw = pad.GetWw()*pad.GetWNDC()
+        fw = pad.GetWw() * pad.GetWNDC()
         fh = pad.GetWh()*pad.GetHNDC()
 
-        #self._point(*(self._anchor)).Draw()
-        #m = ROOT.TMarker(0,0,ROOT.kPlus)
-        #l = ROOT.TLatex()
+        # self._point(*(self._anchor)).Draw()
+        # m = ROOT.TMarker(0,0,ROOT.kPlus)
+        # l = ROOT.TLatex()
         for i,col in enumerate(self._grid):
             for j,entry in enumerate(col):
                 if not entry: continue
@@ -847,6 +976,7 @@ class Legend(object):
                 leg.SetY2( v1 )
                 leg.Draw()
 
+
 # ______________________________________________________________________________
 #     __          __
 #    / /   ____ _/ /____  _  __
@@ -855,70 +985,84 @@ class Legend(object):
 # /_____/\__,_/\__/\___/_/|_|
 #
 class Latex:
-    _latexstyle = {
-            'textfamily':4,
-            'textsize'  :20,
-            'textcolor' :1 #ROOT.kBlack,
+
+    # --------------------------------------------------------------------------
+    @staticmethod
+    def __lazy_init__(cls):
+        '''Initialised the _legendstyle attribute to
+        avoid ROOT to be fully loaded when the module is imported
+        '''
+        cls._latexstyle = {
+            'textfamily': 4,
+            'textsize'  : 20,
+            'textcolor' : ROOT.kBlack,
         }
-    _hcodes = {
-        'l':10,
-        'c':20,
-        'r':30,
-    }
-    _vcodes = {
-        'b':1,
-        'm':2,
-        't':3,
-    }
 
+        cls._hcodes = {
+            'l': 10,
+            'c': 20,
+            'r': 30,
+        }
 
-    # ---
-    def __init__(self,text,**opts):
+        cls._vcodes = {
+            'b': 1,
+            'm': 2,
+            't': 3,
+        }
+    # --------------------------------------------------------------------------
+
+    # --------------------------------------------------------------------------
+    def __init__(self, text, **opts):
+
+        self.__lazy_init__(self.__class__)
+
         self._text   = text
 
-        self._anchor = (0,0)
-        self._align = ('c','m')
+        self._anchor = (0, 0)
+        self._align = ('c', 'm')
         self._style = self._latexstyle.copy()
 
-        for n,o in opts.iteritems():
-            attr = '_'+n
-            if not hasattr(self,attr): continue
+        for n, o in opts.iteritems():
+            attr = '_' + n
+            if not hasattr(self, attr): continue
             if n == 'style':
-                getattr(self,attr).update(o)
+                getattr(self, attr).update(o)
             else:
-                setattr(self,attr,o)
+                setattr(self, attr, o)
 
         self._latex = ROOT.TLatex()
         self._latex.SetNDC()
+    # --------------------------------------------------------------------------
 
-    #---
+    # --------------------------------------------------------------------------
     def _rootstyle(self):
         '''Convert the pixel-based style into ROOT parameters'''
 
         # extract the pad height
         pad = ROOT.gPad.func()
-        ph = pad.GetWh()*pad.GetHNDC()
+        ph = pad.GetWh() * pad.GetHNDC()
 
         style = self._style.copy()
-        style['textfamily'] = style['textfamily']*10+2
+        style['textfamily'] = style['textfamily'] * 10 + 2
         style['textsize']  /= ph
         return style
+    # --------------------------------------------------------------------------
 
-    # ---
+    # --------------------------------------------------------------------------
     def draw(self):
 
         pad = ROOT.gPad.func()
-        fw = float(pad.GetWw()*pad.GetWNDC())
-        fh = float(pad.GetWh()*pad.GetHNDC())
+        fw = float(pad.GetWw() * pad.GetWNDC())
+        fh = float(pad.GetWh() * pad.GetHNDC())
 
-        ha,va = self._align
-        self._latex.SetTextAlign(self._hcodes[ha]+self._vcodes[va])
+        ha, va = self._align
+        self._latex.SetTextAlign(self._hcodes[ha] + self._vcodes[va])
 
         setter = StyleSetter(**(self._rootstyle()))
         setter.apply(self._latex)
 
-        x0,y0 = self._anchor
-        self._latex.SetText( x0/fw, 1-(y0/fh), self._text )
+        x0, y0 = self._anchor
+        self._latex.SetText( x0 / fw, 1 - (y0 / fh), self._text )
 
         self._latex.Draw()
 
@@ -928,58 +1072,56 @@ if __name__ == '__main__':
     sys.argv.append('-b')
     ROOT.gROOT.SetBatch()
 
-    c = Canvas(2,3)
+    c = Canvas(2, 3)
 
     axst = {
-    'labelfamily'       : 44,
-    'labelsize'         : 20,
-    'labeloffset'       : 0,
-    'titlefamily'       : 44,
-    'titlesize'         : 20,
-    'titleoffset'       : 50,
-    'ticklength'        : 10
+        'labelfamily': 44,
+        'labelsize'  : 20,
+        'labeloffset': 0,
+        'titlefamily': 44,
+        'titlesize'  : 20,
+        'titleoffset': 50,
+        'ticklength' : 10
     }
 #     axst = {'label-family':42, 'label-size':0.04, }
 
-    p0 = Pad('p0',200,500, margins=(20,80,80,20), xaxis = axst, yaxis = axst, align=('l','b')  )
-    p1 = Pad('p1',500,500, margins=(80,20,20,20), xaxis = axst, yaxis = axst )
-    p2 = Pad('p2',500,200, margins=(80,20,20,20), xaxis = axst, yaxis = axst )
-    p3 = Pad('p3',500,200, margins=(80,20,20,80), xaxis = axst, yaxis = axst )
-    p4 = Pad('p4',200,200, margins=(20,80,20,80), xaxis = axst, yaxis = axst )
-    p5 = Pad('p5',200,200, margins=(20,80,80,20), xaxis = axst, yaxis = axst, align=('l','b') )
+    p0 = Pad('p0', 200, 500, margins=(20, 80, 80, 20), xaxis=axst, yaxis=axst, align=('l', 'b')  )
+    p1 = Pad('p1', 500, 500, margins=(80, 20, 20, 20), xaxis=axst, yaxis=axst )
+    p2 = Pad('p2', 500, 200, margins=(80, 20, 20, 20), xaxis=axst, yaxis=axst )
+    p3 = Pad('p3', 500, 200, margins=(80, 20, 20, 80), xaxis=axst, yaxis=axst )
+    p4 = Pad('p4', 200, 200, margins=(20, 80, 20, 80), xaxis=axst, yaxis=axst )
+    p5 = Pad('p5', 200, 200, margins=(20, 80, 80, 20), xaxis=axst, yaxis=axst, align=('l', 'b') )
     p1._xaxis['label-size'] = 0.0
     p2._xaxis['label-size'] = 0.0
 #     p3._xaxis['title-offset'] = 2.5
 #     p4._xaxis['title-offset'] = 2.5
 
 #     c.attach(p0,1,0)
-    c[1,0] = p0
-    c.attach(p1,0,0)
-    c.attach(p2,0,1)
-    c.attach(p3,0,2)
-    c.attach(p4,1,2)
-    c.attach(p5,1,1)
-
+    c[1, 0] = p0
+    c.attach(p1, 0, 0)
+    c.attach(p2, 0, 1)
+    c.attach(p3, 0, 2)
+    c.attach(p4, 1, 2)
+    c.attach(p5, 1, 1)
 
     tc = c.makecanvas()
     tc.SetName('aaa')
 
     bins = 10
-    hdummy = ROOT.TH1F('dummy','',bins,0,bins)
-    hs = ROOT.THStack('stack','stocazz')
+    hdummy = ROOT.TH1F('dummy', '', bins, 0, bins)
+    hs = ROOT.THStack('stack', 'stocazz')
     hcols = []
     for i in xrange(bins):
         h = hdummy.Clone('col%d' % i)
         h.SetTitle(h.GetName())
-        h.SetFillColor(i+ROOT.kOrange)
-        h.SetLineColor(i+ROOT.kOrange)
+        h.SetFillColor(i + ROOT.kOrange)
+        h.SetLineColor(i + ROOT.kOrange)
         h.SetFillStyle(3001)
         h.SetLineWidth(2)
-        h.Fill(i,i)
-        ROOT.SetOwnership(h,False)
+        h.Fill(i, i)
+        ROOT.SetOwnership(h, False)
         hs.Add(h)
         hcols.append(h)
-
 
     p1.cd()
     hs1 = hs.Clone('xxx')
@@ -987,22 +1129,22 @@ if __name__ == '__main__':
     hs1.GetYaxis().SetTitle('y-axis')
     hs1.GetXaxis().SetTitle('x-axis')
 #     hs.Draw()
-    leg = Legend(4,4, 80,30, anchor=(90,30))
+    leg = Legend(4, 4, 80, 30, anchor=(90, 30))
     sequence = leg.sequence
-    sequence.remove( (1,3) )
-    sequence.remove( (2,3) )
-    sequence.remove( (2,2) )
+    sequence.remove( (1, 3) )
+    sequence.remove( (2, 3) )
+    sequence.remove( (2, 2) )
     leg.sequence = sequence
-    leg.addentry(hcols[0],'f')
-    leg.addentry(hcols[1],'f')
-    leg.addentry(hcols[2],'f')
-    leg.addentry(hcols[3],'f')
-    leg.addentry(hcols[4],'f')
-    leg.addentry(hcols[5],'f')
-    leg.addentry(hcols[6],'f')
-    leg.addentry(hcols[7],'f')
-    leg.addentry(hcols[8],'f')
-    leg.addentry(hcols[9],'f')
+    leg.addentry(hcols[0], 'f')
+    leg.addentry(hcols[1], 'f')
+    leg.addentry(hcols[2], 'f')
+    leg.addentry(hcols[3], 'f')
+    leg.addentry(hcols[4], 'f')
+    leg.addentry(hcols[5], 'f')
+    leg.addentry(hcols[6], 'f')
+    leg.addentry(hcols[7], 'f')
+    leg.addentry(hcols[8], 'f')
+    leg.addentry(hcols[9], 'f')
     leg.draw()
 
     p2.cd()
@@ -1011,20 +1153,20 @@ if __name__ == '__main__':
     hs2.GetYaxis().SetTitle('y-axis')
 #     hs.Draw()
 
-    pad = c.get(0,2)
+    pad = c.get(0, 2)
     pad.cd()
     d3 = hdummy.Clone('d3')
     d3.GetYaxis().SetTitle('y-axis')
     d3.GetXaxis().SetTitle('x-axis')
     d3.Draw()
 
-    pad = c.get(1,2)
+    pad = c.get(1, 2)
     pad.cd()
     d4 = hdummy.Clone('d4')
     d4.GetXaxis().SetTitle('x-axis')
     d4.Draw('Y+')
 
-    pad = c.get(1,1)
+    pad = c.get(1, 1)
     pad.cd()
     d5 = hdummy.Clone('d5')
     d5.GetXaxis().SetTitle('x-axis')
