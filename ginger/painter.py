@@ -951,7 +951,7 @@ class Legend(object):
 
         pad = ROOT.gPad.func()
         fw = pad.GetWw() * pad.GetWNDC()
-        fh = pad.GetWh()*pad.GetHNDC()
+        fh = pad.GetWh() * pad.GetHNDC()
 
         # self._point(*(self._anchor)).Draw()
         # m = ROOT.TMarker(0,0,ROOT.kPlus)
@@ -961,8 +961,8 @@ class Legend(object):
                 if not entry: continue
                 title,leg = entry
 
-                x0,y0 = self._getanchor(i,j)
-                x1,y1 = x0+self._boxsize,y0+self._boxsize
+                x0, y0 = self._getanchor(i, j)
+                x1, y1 = x0 + self._boxsize, y0 + self._boxsize
 
                 #self._point(x0,y0).Draw()
                 #self._point(x1,y1).Draw()
