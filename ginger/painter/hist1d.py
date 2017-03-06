@@ -1,7 +1,7 @@
 import ROOT
 import logging
 
-from ..utils import TH1AddDirSentry
+from ..toolbox import TH1AddDirSentry
 from .toolbox import StyleSetter
 
 

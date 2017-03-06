@@ -1,7 +1,7 @@
 import ROOT
 
 from .stdstyle import stdstyle
-from ..utils import TH1AddDirSentry
+from ..toolbox import TH1AddDirSentry
 from ..painter import Canvas, Pad, Legend, Latex
 
 from copy import deepcopy

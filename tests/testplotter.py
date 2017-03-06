@@ -30,8 +30,8 @@ diff.set(h2, h1)
 
 diff.yaxsty['titleoffset'] = 100
 diff.left = 150
-diff.ltitle = "la rava"
-diff.rtitle = "e la fava"
+diff.ltitle = "left"
+diff.rtitle = "right"
 
 c = diff.plot()
 

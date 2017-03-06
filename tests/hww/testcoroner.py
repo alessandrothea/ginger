@@ -2,60 +2,60 @@
 
 import ROOT
 import sys
-from ginger.painter import Pad,Canvas,Legend,Latex
-from ginger.utils import TH1AddDirSentry
+from ginger.painter import Pad, Canvas, Legend, Latex
+from ginger.toolbox import TH1AddDirSentry
 import numpy
 import array
 
-class Directory:
+#class Directory:
 
-    @property
-    def name(self):
-        return self._name
+#    @property
+#    def name(self):
+#        return self._name
 
-    @property
-    def objs(self):
-        return dict([ (k,a)  for k,a in self.__dict__.iteritems() if (not isinstance(a,Directory) and not k[0] == '_') ] )
+#    @property
+#    def objs(self):
+#        return dict([ (k,a)  for k,a in self.__dict__.iteritems() if (not isinstance(a,Directory) and not k[0] == '_') ] )
 
-    @property
-    def dirs(self):
-        return dict([ (k,a)  for k,a in self.__dict__.iteritems() if (isinstance(a,Directory) and not k[0] == '_') ] )
+#    @property
+#    def dirs(self):
+#        return dict([ (k,a)  for k,a in self.__dict__.iteritems() if (isinstance(a,Directory) and not k[0] == '_') ] )
 
-    #---
-    def get(self, name):
-        if name[0] == '_': return None
-        return self.__dict__[name]
+#    #---
+#    def get(self, name):
+#        if name[0] == '_': return None
+#        return self.__dict__[name]
 
-    #---
-    def __getitem__(self, name):
-        return self.get(name)
+#    #---
+#    def __getitem__(self, name):
+#        return self.get(name)
 
-    #---
-    def show(self, indent=0, level=-1):
-        print ' '*indent+'+',self._name
-        for k,a in self.__dict__.iteritems():
-            if k[0] == '_': continue
-            if isinstance(a,Directory):
-                a.show(indent+1)
-            else:
-                print ' '*(indent+1)+'-',k,'=',a
+#    #---
+#    def show(self, indent=0, level=-1):
+#        print ' '*indent+'+',self._name
+#        for k,a in self.__dict__.iteritems():
+#            if k[0] == '_': continue
+#            if isinstance(a,Directory):
+#                a.show(indent+1)
+#            else:
+#                print ' '*(indent+1)+'-',k,'=',a
 
-    #---
-    def __init__(self,tdir):
-        if not isinstance(tdir,ROOT.TDirectory):
-            raise TypeError('Can\t build a Directory from a %s' % tdir.__class__.__name__)
+#    #---
+#    def __init__(self,tdir):
+#        if not isinstance(tdir,ROOT.TDirectory):
+#            raise TypeError('Can\t build a Directory from a %s' % tdir.__class__.__name__)
 
-#         dir = Directory(tdir.GetName())
-        self._name = tdir.GetName()
+# #         dir = Directory(tdir.GetName())
+#        self._name = tdir.GetName()
 
-        for k in tdir.GetListOfKeys():
-            o = None
-            if k.GetClassName().startswith('TDirectory'):
-                o = Directory(k.ReadObj())
-            else:
-                o = k.ReadObj()
+#        for k in tdir.GetListOfKeys():
+#            o = None
+#            if k.GetClassName().startswith('TDirectory'):
+#                o = Directory(k.ReadObj())
+#            else:
+#                o = k.ReadObj()
 
-            setattr(self, k.GetName(), o)
+#            setattr(self, k.GetName(), o)
 
 
 # bin 2 axis definition
@@ -119,9 +119,9 @@ class RollProjector:
 
         # this is the number of folds contained in the original object
         # for instance in the mth x mll case (13x9 bins)
-        #  mth=1    |mth=2  |mth=3    
+        #  mth=1    |mth=2  |mth=3
         #  123456789123456789123456789...
-        # 
+        #
         self._nfold = nfold if nfold else n
         self._proj = proj
         # projection axis
@@ -131,7 +131,7 @@ class RollProjector:
             self._pax = 0
 
     def project(self,o):
-        
+
         if isinstance(o,ROOT.TH1):
             return self._projTH1(o)
         elif isinstance(o,ROOT.TGraphAsymmErrors):
@@ -149,13 +149,13 @@ class RollProjector:
             htype = numpy.int32
         else:
             raise ValueError('Boh?!??!')
-        
+
         # add a 2 because the array contains under and overflow
         harray = numpy.ndarray( (h.GetNbinsX()+2,),dtype=htype, buffer=h.GetArray() )
 #         print len(harray[1:-1])
 #         print self._nfold,h.GetNbinsX()
         hsplit =  numpy.hsplit(harray[1:-1],self._nfold)
-        newarray = numpy.sum(hsplit,axis=self._pax) 
+        newarray = numpy.sum(hsplit,axis=self._pax)
 
         print 'Entries',numpy.sum(hsplit)
 
@@ -163,10 +163,10 @@ class RollProjector:
         hproj = (h.__class__)('%s_proj_%s' % (h.GetName(),self._proj), '%s proj %s' % (h.GetTitle(),self._proj),self._nbins, self._axdef )
 
 #         print newarray
-        
+
         for i,x in enumerate(newarray):
             hproj.SetAt(x,i+1)
-            
+
         ROOT.TAttLine.Copy(h,hproj)
         ROOT.TAttFill.Copy(h,hproj)
         ROOT.TAttMarker.Copy(h,hproj)
@@ -177,10 +177,10 @@ class RollProjector:
     def _projTGraph(self,g):
 
         sentry = TH1AddDirSentry()
-        
+
         y      = numpy.ndarray( (g.GetN(),),dtype=numpy.double, buffer=g.GetY() )
         ysplit = numpy.hsplit(y,self._nfold)
-        p_y    = numpy.sum(ysplit,axis=self._pax) 
+        p_y    = numpy.sum(ysplit,axis=self._pax)
 
         eyh = numpy.ndarray( (g.GetN(),),dtype=numpy.double, buffer=g.GetEYhigh() )
         eyh2_split = numpy.hsplit( (eyh**2) ,self._nfold)
@@ -208,9 +208,9 @@ class RollProjector:
 
 # ---
 def tester():
-    
+
     dumpfile = ROOT.TFile.Open('dumplings.root')
-    
+
     d = Directory(dumpfile)
 
     d.info.show()
@@ -233,22 +233,22 @@ def tester():
     print b,n,p
 
     sentry = TH1AddDirSentry()
-    
+
     def setstyle(obj, **opts):
         methods = [
-            ('linewidth'  , obj.SetLineWidth), 
-            ('linecolor'  , obj.SetLineColor), 
-            ('linestyle'  , obj.SetLineStyle), 
-            ('fillstyle'  , obj.SetFillStyle), 
-            ('fillcolor'  , obj.SetFillColor), 
-            ('markercolor', obj.SetMarkerColor), 
-            ('markerstyle', obj.SetMarkerStyle), 
-            ('markersize' , obj.SetMarkerSize), 
+            ('linewidth'  , obj.SetLineWidth),
+            ('linecolor'  , obj.SetLineColor),
+            ('linestyle'  , obj.SetLineStyle),
+            ('fillstyle'  , obj.SetFillStyle),
+            ('fillcolor'  , obj.SetFillColor),
+            ('markercolor', obj.SetMarkerColor),
+            ('markerstyle', obj.SetMarkerStyle),
+            ('markersize' , obj.SetMarkerSize),
         ]
 
         for l,m in methods:
             x = opts.get(l,None)
-            if not x is None: m(x)#; print x,m.__name__ 
+            if not x is None: m(x)#; print x,m.__name__
 
     h_data = d.init[b]['histo_Data']
     h_init = d.init[b]['histo_%s' % p]
@@ -300,13 +300,13 @@ def tester():
 
     canv = c.makecanvas(n)
 
-    hp_data = rp.project(h_data) 
-    hp_init = rp.project(h_init) 
-    hp_sig  = rp.project(h_sig)  
-    hp_bkg  = rp.project(h_bkg)  
-    ep_init = rp.project(e_init) 
-    ep_sig  = rp.project(e_sig)  
-    ep_bkg  = rp.project(e_bkg)  
+    hp_data = rp.project(h_data)
+    hp_init = rp.project(h_init)
+    hp_sig  = rp.project(h_sig)
+    hp_bkg  = rp.project(h_bkg)
+    ep_init = rp.project(e_init)
+    ep_sig  = rp.project(e_sig)
+    ep_bkg  = rp.project(e_bkg)
 
     print 'Kolmogorov init-init',hp_init.KolmogorovTest(hp_init)
     print 'Kolmogorov init-sig',hp_init.KolmogorovTest(hp_sig)
@@ -340,11 +340,11 @@ def tester():
 
     p1.cd()
     hp_sig_diff = hp_sig.Clone()
-    hp_sig_diff.Add(hp_init,-1) 
+    hp_sig_diff.Add(hp_init,-1)
     hp_sig_diff.Divide(hp_init)
 
     hp_bkg_diff = hp_bkg.Clone()
-    hp_bkg_diff.Add(hp_init,-1) 
+    hp_bkg_diff.Add(hp_init,-1)
     hp_bkg_diff.Divide(hp_init)
 
     hsB = ROOT.THStack('diffs','diffs;;s-b diffs')
@@ -352,7 +352,7 @@ def tester():
     hsB.Add( hp_bkg_diff )
     hsB.Draw('nostack')
 
-    
+
 
     p2.cd()
     import ctypes
@@ -405,7 +405,7 @@ def tester():
     c.Modified()
     c.Update()
     canv.Print('zzz.pdf')
-    
+
 
     # for each bin and process need to get the 3 histograms
 
@@ -413,7 +413,7 @@ def tester():
 
 #     for b in bins:
 #         binfold = d.init.get(b)
-#         
+#
 #         bkg = []
 #         sig = []
 #         for p in processes:
@@ -425,7 +425,7 @@ def tester():
 #                 bkg.append(o)
 
 #         break
-    
+
 
 #     print d.info.objs
 #     print d.init.dirs
@@ -436,7 +436,7 @@ def tester():
 
 #     dump = container()
 #     info = container()
-#     
+#
 #     info.nuisances = dumpfile.Get('info/nuisances')
 #     info.nuisances = dumpfile.Get('info/processes')
 #     info.nuisances = dumpfile.Get('info/signals')

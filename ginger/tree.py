@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Local imports
-import utils
+import toolbox
 import odict
 
 import ctypes
@@ -15,8 +15,7 @@ import array
 import ROOT
 import copy
 from .base import Labelled
-from .core import AbsWorker,AbsView,Chained,Yield
-
+from .core import AbsWorker, AbsView, Chained, Yield
 
 
 # _____________________________________________________________________________
@@ -41,14 +40,14 @@ def _bins2hclass( bins ):
 
     from array import array
     if not bins:
-        return name,0
+        return name, 0
     elif not ( isinstance(bins, tuple) ):
         raise RuntimeError('bin must be an ntuple or an arryas')
 
     l = len(bins)
     # 1D variable binning
-    if l == 1 and isinstance(bins[0],list):
-        ndim=1
+    if l == 1 and isinstance(bins[0], list):
+        ndim = 1
         hclass = ROOT.TH1D
         xbins = bins[0]
         hargs = (len(xbins)-1, array('d',xbins))
@@ -375,8 +374,8 @@ class TreeWorker(AbsWorker):
         # if the tuple is made of lists
 #         if l in [1,2] and all(map(lambda o: isinstance(o,list),bins)):
         if (l in [1,2] and all(map(lambda o: isinstance(o,list),bins))) or (l in [3,6]):
-            dirsentry = utils.TH1AddDirSentry()
-            sumsentry = utils.TH1Sumw2Sentry()
+            dirsentry = toolbox.TH1AddDirSentry()
+            sumsentry = toolbox.TH1Sumw2Sentry()
 
             # get the hshape
             hdim,hclass,hargs = _bins2hclass( bins )
@@ -414,8 +413,8 @@ class TreeWorker(AbsWorker):
         '''
 
         if kwargs: print 'kwargs',kwargs
-        dirsentry = utils.TH1AddDirSentry()
-        sumsentry = utils.TH1Sumw2Sentry()
+        dirsentry = toolbox.TH1AddDirSentry()
+        sumsentry = toolbox.TH1Sumw2Sentry()
         options = 'goff '+options
         self._log.debug('varexp:  \'%s\'', varexp)
         self._log.debug('cut:     \'%s\'', cut)
@@ -437,8 +436,8 @@ class TreeWorker(AbsWorker):
     def yields(self, cut='', options='', *args, **kwargs):
         cut = self._cutexpr(cut)
         # DO add the histogram, and set sumw2 (why not using TH1::Sumw2()?
-        dirsentry = utils.TH1AddDirSentry(True)
-        sumsentry = utils.TH1Sumw2Sentry()
+        dirsentry = toolbox.TH1AddDirSentry(True)
+        sumsentry = toolbox.TH1Sumw2Sentry()
         # new name per call or? what about using always the same histogram?
         tname = 'counter' #'counter_%s' % uuid.uuid1()
         # it might look like an overkill, but the double here helps
@@ -795,4 +794,3 @@ class ChainView(Chained,AbsView):
         child.add(*views)
 
         return child
-
