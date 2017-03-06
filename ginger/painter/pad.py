@@ -31,19 +31,34 @@ class Pad(object):
     '''
     _log = logging.getLogger('Pad')
 
-    _axisstyle = {
-        'labelfamily': 4,
-        'labelsize':   20,
-        'labeloffset': 2,
-        'titlefamily': 4,
-        'titlesize':   25,
-        'titleoffset': 30.,
-        'ticklength':  10,
-        'ndivisions':  505,
-    }
+    # __________________________________________________________________________
+    @classmethod
+    def __lazy_init__(cls):
+        '''Initialised the _axisstyle attribute to
+        avoid ROOT to be fully loaded when the module is imported
+
+        OK, no ROOT enums are used here (yet), but just in case.
+        '''
+
+        if hasattr(cls, '_axisstyle'):
+            return
+
+        cls._axisstyle = {
+            'labelfamily': 4,
+            'labelsize':   20,
+            'labeloffset': 2,
+            'titlefamily': 4,
+            'titlesize':   25,
+            'titleoffset': 30.,
+            'ticklength':  10,
+            'ndivisions':  505,
+        }
+    # __________________________________________________________________________
 
     # __________________________________________________________________________
     def __init__(self, name, width=500, height=500, **opts):
+
+        self.__lazy_init__()
 
         self._name = name
         self._w = width

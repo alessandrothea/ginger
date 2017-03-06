@@ -18,11 +18,15 @@ class Latex:
     _log = logging.getLogger('Latex')
 
     # --------------------------------------------------------------------------
-    @staticmethod
+    @classmethod
     def __lazy_init__(cls):
         '''Initialised the _legendstyle attribute to
         avoid ROOT to be fully loaded when the module is imported
         '''
+
+        if hasattr(cls, '_latexstyle'):
+            return
+
         cls._latexstyle = {
             'textfamily': 4,
             'textsize'  : 20,

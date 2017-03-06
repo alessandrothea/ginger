@@ -24,6 +24,10 @@ class Legend(object):
         '''Initialised the _legendstyle attribute to
         avoid ROOT to be fully loaded when the module is imported
         '''
+
+        if hasattr(cls, '_legendstyle'):
+            return
+
         cls._legendstyle = {
             'textfamily' : 4,
             'textsize'   : 20,
@@ -34,8 +38,7 @@ class Legend(object):
     # --------------------------------------------------------------------------
     def __init__(self, nx, ny, boxsize, **opts):
 
-        if not hasattr(self, '_legendstyle'):
-            self.__lazy_init__()
+        self.__lazy_init__()
 
         self._boxsize = boxsize
         self._nx = nx
