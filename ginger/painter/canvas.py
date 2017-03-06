@@ -169,6 +169,7 @@ class Canvas(object):
         if not title:
             title = name
 
+        # Calculate the expected canvas size according to the size of all pads
         w, h = self._computesize()  # new
 
         fw, fh = float(w), float(h)
@@ -182,7 +183,7 @@ class Canvas(object):
             c.cd()
             if not pad: continue
 
-            # assule left-top alignement
+            # assume top-left alignement
             x0, y0 = self._getanchors(i, j)
             x1, y1 = x0 + pad.w, y0 + pad.h
 
@@ -228,8 +229,8 @@ class Canvas(object):
             # print pad, p0._obj
             # pad._obj.cd()
             tpad.cd()
-            for o in pad._subobj:
-                o.draw()
+            for d, opts in pad._drawables:
+                d.draw(opts)
 
             k += 1
 

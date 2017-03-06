@@ -5,7 +5,7 @@ import sys
 
 
 # ------------------------------------------------------------------------------
-class Directory:
+class Directory(object):
 
     # --------------------------------------------------------------------------
     @property
@@ -17,8 +17,10 @@ class Directory:
     @property
     def objs(self):
         return {
-            k: a for k, a in self.__dict__.iteritems()
-            if (not isinstance(a, Directory) and not k[0] == '_')
+            # k: a for k, a in self.__dict__.iteritems()
+            # if (not isinstance(a, Directory) and not k[0] == '_')
+            k: a for k, a in self._children.iteritems()
+            if not isinstance(a, Directory)
         }
     # --------------------------------------------------------------------------
 
@@ -26,16 +28,28 @@ class Directory:
     @property
     def dirs(self):
         return {
-            (k, a) for k, a in self.__dict__.iteritems()
-            if (isinstance(a, Directory) and not k[0] == '_')
+            # (k, a) for k, a in self.__dict__.iteritems()
+            # if (isinstance(a, Directory) and not k[0] == '_')
+            k: a for k, a in self._children.iteritems()
+            if isinstance(a, Directory)
         }
     # --------------------------------------------------------------------------
 
     # --------------------------------------------------------------------------
     def get(self, name):
-        if name[0] == '_':
-            return None
-        return self.__dict__[name]
+        # if name[0] == '_':
+            # return None
+        # return self.__dict__[name]
+        return self._children[name]
+    # --------------------------------------------------------------------------
+
+    # --------------------------------------------------------------------------
+    def __getattr__(self, name):
+        print '>>>', name
+        try:
+            return self._children[name]
+        except:
+            raise
     # --------------------------------------------------------------------------
 
     # --------------------------------------------------------------------------
@@ -46,9 +60,10 @@ class Directory:
     # --------------------------------------------------------------------------
     def show(self, indent=0, level=-1):
         print ' ' * indent + '+', self._name
-        for k, a in self.__dict__.iteritems():
-            if k[0] == '_':
-                continue
+        # for k, a in self.__dict__.iteritems():
+        for k, a in self._children.iteritems():
+            # if k[0] == '_':
+                # continue
             if isinstance(a, Directory):
                 a.show(indent + 1)
             else:
@@ -62,15 +77,17 @@ class Directory:
 
 #         dir = Directory(tdir.GetName())
         self._name = tdir.GetName()
+        children = {}
 
         for k in tdir.GetListOfKeys():
-            o = None
+            o = k.ReadObj()
+            ROOT.SetOwnership(o, False)
             if k.GetClassName().startswith('TDirectory'):
-                o = Directory(k.ReadObj())
-            else:
-                o = k.ReadObj()
+                o = Directory(o)
 
-            setattr(self, k.GetName(), o)
+            children[k.GetName()] = o
+
+        self._children = children
     # --------------------------------------------------------------------------
 
 

@@ -53,7 +53,7 @@ class Pad(object):
         self._showstats = False
 
         self._obj = None
-        self._subobj = []
+        self._drawables = []
 
         self._margins = (60, 60, 60, 60)
         self._xaxis = self._axisstyle.copy()
@@ -134,7 +134,13 @@ class Pad(object):
         # if not isinstance(drawable, ROOT.TH1):
         #     raise TypeError('Expeted ROOT.TH1, found %s' % drawable.__class__.__name__)
 
-        self._subobj.append(drawable)
+        self._drawables.append( (drawable, opts) )
+    # __________________________________________________________________________
+
+    # __________________________________________________________________________
+    def _applyobjstyle(self):
+        for o in self._drawables:
+            o._applystyle()
     # __________________________________________________________________________
 
     # __________________________________________________________________________
@@ -242,6 +248,7 @@ class Pad(object):
         self.Modified()
         self._log.debug('tick yaxis: %s =>  %s', self._yaxis['ticklength'])
     # __________________________________________________________________________
+# ______________________________________________________________________________
 
 
 # ______________________________________________________________________________

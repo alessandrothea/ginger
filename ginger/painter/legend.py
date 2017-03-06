@@ -34,7 +34,7 @@ class Legend(object):
     # --------------------------------------------------------------------------
     def __init__(self, nx, ny, boxsize, **opts):
 
-        self.__lazy_init__(self.__class__)
+        self.__lazy_init__()
 
         self._boxsize = boxsize
         self._nx = nx

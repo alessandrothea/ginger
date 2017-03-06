@@ -41,11 +41,20 @@ class Hist1D(object):
     # __________________________________________________________________________
 
     # __________________________________________________________________________
-    def __init__(self, h1):
+    def __init__(self, h1, **opts):
         if not isinstance(h1, ROOT.TH1):
             raise TypeError("h1 is does not inherit from ROOT.TH1")
 
-        self.__lazy_init__(self.__class__)
+        self.__lazy_init__()
+
+        self._style = self._hist1dstyle.copy()
+        for n, o in opts.iteritems():
+            attr = '_' + n
+            if not hasattr(self, attr): continue
+            if n == 'style':
+                getattr(self, attr).update(o)
+            else:
+                setattr(self, attr, o)
 
         sentry = TH1AddDirSentry()
         h1clone = h1.Clone()
@@ -55,14 +64,14 @@ class Hist1D(object):
 
     # __________________________________________________________________________
     def _applystyle(self):
-        styler = StyleSetter(**self._hist1dstyle)
+        styler = StyleSetter(**self._style)
         styler.apply(self._obj)
     # __________________________________________________________________________
 
     # __________________________________________________________________________
-    def draw(self):
+    def draw(self, opts):
         '''Applies the style and draw the object'''
 
         self._applystyle()
-        self._obj.Draw()
+        self._obj.Draw(opts)
     # __________________________________________________________________________

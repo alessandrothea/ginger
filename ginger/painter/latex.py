@@ -45,7 +45,7 @@ class Latex:
     # --------------------------------------------------------------------------
     def __init__(self, text, **opts):
 
-        self.__lazy_init__(self.__class__)
+        self.__lazy_init__()
 
         self._text   = text
 
